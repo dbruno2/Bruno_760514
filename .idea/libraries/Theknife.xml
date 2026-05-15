@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Theknife">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/bin/Theknife.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"src.sicurezzaPassword","l":"Criptazione"},{"p":"src.dao","l":"GestioneTheKnife"},{"p":"src.mapper","l":"Mapper"},{"p":"src.dto","l":"Recensione"},{"p":"src.dto","l":"Ristorante"},{"p":"src.theknife","l":"Theknife"},{"p":"src.dto","l":"Utente"}];updateSearchResults();
