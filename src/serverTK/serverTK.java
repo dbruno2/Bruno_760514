@@ -1,6 +1,6 @@
 package serverTK;
 
-import src.dao.PostgresDB;
+import dao.PostgresDB;
 import java.util.List;
 import java.util.Map;
 

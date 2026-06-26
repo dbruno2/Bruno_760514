@@ -1,4 +1,4 @@
-package src.dao;
+package dao;
 
 import java.sql.*;
 import java.util.ArrayList;

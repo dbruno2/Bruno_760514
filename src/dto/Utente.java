@@ -1,4 +1,4 @@
-package src.dto;
+package dto;
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 
