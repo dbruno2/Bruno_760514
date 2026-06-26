@@ -102,7 +102,7 @@ public class Theknife {
      * Gestisce la procedura di registrazione di un nuovo utente.
      * <p>Richiede l'inserimento dei dati obbligatori e, in caso di successo,
      * delega alla classe {@code GestioneTheKnife} la persistenza delle
-     * informazioni.</p>
+     * informazioni che a sua volta delega a PostGresDB la connessione al server e l'esecuzione della query.
      */
     private static void registrazione() {
         System.out.print("Nome: ");
@@ -160,7 +160,8 @@ public class Theknife {
      * Effettua il parsing della data di nascita inserita dall'utente.
      * 
      * @param inputData data nel formato {@code dd/MM/yyyy}; se vuota ritorna 1/1/0000
-     * @return {@link Calendar} rappresentante la data, oppure {@code null} se il formato è errato
+     * @return {@link Calendar} rappresentante la data
+     * @throws IllegalArgumentException se il formato della data non è valido
      */
     private static Calendar parseDataNascita(String inputData) {
         if (inputData == null || inputData.trim().isEmpty()) {
