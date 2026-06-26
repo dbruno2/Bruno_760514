@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Scanner;
 import dao.*;
 import sicurezzaPassword.*;
+import javax.swing.*;
+import src.gui.MainFrame;
+
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
  * 
@@ -44,7 +47,10 @@ public class Theknife {
      * @param args argomenti passati da riga di comando (non utilizzati)
      */
     public static void main(String[] args) {
-           boolean running = true;
+            SwingUtilities.invokeLater(() -> new MainFrame());
+
+       /* sto commendo mi serve non cancellatemelo - SS the real g
+        boolean running = true;
 
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
@@ -63,7 +69,7 @@ public class Theknife {
                 case "0" -> running = false;
                 default -> System.out.println("Scelta non valida");
             }
-        }
+        }*/
     }
     /**
      * Gestisce la procedura di login per clienti o ristoratori.
