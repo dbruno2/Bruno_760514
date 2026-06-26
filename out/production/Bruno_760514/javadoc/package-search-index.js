@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"src.dao"},{"l":"src.dto"},{"l":"src.mapper"},{"l":"src.sicurezzaPassword"},{"l":"src.theknife"}];updateSearchResults();

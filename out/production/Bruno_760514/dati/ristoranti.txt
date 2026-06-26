@@ -1,0 +1,29 @@
+La Trattoria;ristoratore1;Italia;Roma;Via dei Fiori 12;41.9028;12.4964;2;Sì;Sì;Italiana
+Sushi World;Gianni1;Italia;Milano;Corso Como 22;45.4642;9.1900;3;Sì;No;Giapponese
+El Mariachi;ristoratore4;Italia;Napoli;Via Toledo 45;40.8518;14.2681;2;Sì;Sì;Messicana
+Dragon Palace;ristoratore5;Italia;Firenze;Via Roma 3;43.7696;11.2558;3;No;No;Cinese
+Osteria Vecchia;marior;Italia;Torino;Piazza Castello 5;45.0703;7.6869;1;No;Sì;Italiana
+La Pergola;antonio;Italia;Palermo;Via Maqueda 100;38.1157;13.3615;4;Sì;Sì;Mediterranea
+Ristorante Bella;francesca;Italia;Genova;Via Garibaldi 20;44.4056;8.9463;2;No;No;Italiana
+Trattoria Mare;paolo;Italia;Venezia;Riva degli Schiavoni 12;45.4408;12.3155;3;Sì;No;Pesce
+Pizzeria Napoli;lucia;Italia;Bologna;Via Indipendenza 10;44.4949;11.3426;1;No;Sì;Pizzeria
+Antica Cucina;fabio;Italia;Verona;Piazza Bra 7;45.4384;10.9916;3;Sì;Sì;Italiana
+Taverna Toscana;marta;Italia;Perugia;Corso Vannucci 30;43.1107;12.3908;2;No;No;Italiana
+Ristorante Sud;gianni;Italia;Cagliari;Via Roma 25;39.2238;9.1217;2;Sì;Sì;Sarda
+Osteria del Borgo;simone;Italia;Trento;Piazza Duomo 1;46.0707;11.1216;3;No;No;Italiana
+Locanda del Centro;elisa;Italia;Bari;Via Sparano 15;41.1171;16.8719;2;Sì;Sì;Pugliese
+Ristorante Lago;marco;Italia;Aosta;Piazza Chanoux 3;45.7371;7.3201;4;No;Sì;Internazionale
+La Cantina;valeria;Italia;Campobasso;Corso Vittorio Emanuele 8;41.5619;14.6688;1;No;No;Italiana
+Sushi Express;mario;Italia;Milano;Via Dante 7;45.4642;9.1900;2;Sì;No;Giapponese
+Pizza Roma;giulia;Italia;Roma;Via Nazionale 10;41.9028;12.4964;1;No;Sì;Pizzeria
+Trattoria da Luca;luca;Italia;Milano;Via Torino 55;45.4642;9.1900;2;No;Sì;Italiana
+Gelateria Dolce;anna;Italia;Napoli;Via Chiaia 50;40.8518;14.2681;1;No;No;Gelateria
+Ristorante Mediterraneo;paolo;Italia;Roma;Via Veneto 33;41.9028;12.4964;3;Sì;Sì;Mediterranea
+Osteria del Porto;simona;Italia;Genova;Via XX Settembre 45;44.4056;8.9463;2;No;Sì;Pesce
+La Bottega;giovanni;Italia;Torino;Corso Francia 90;45.0703;7.6869;3;Sì;No;Italiana
+Ristorante del Mare;francesco;Italia;Venezia;Calle Larga 1;45.4408;12.3155;4;Sì;Sì;Pesce
+Pizzeria Bella Napoli;maria;Italia;Napoli;Via dei Tribunali 75;40.8518;14.2681;1;Sì;Sì;Pizzeria
+Trattoria Rustica;roberto;Italia;Bologna;Via Zamboni 12;44.4949;11.3426;2;No;No;Italiana
+Ristorante del Centro;elena;Italia;Firenze;Via dei Calzaiuoli 18;43.7696;11.2558;3;Sì;Sì;Italiana
+suiden mania;suiden;italia;Milano;piazza deturbo 4;1.2333212E7;232111.0;35;si;si;ganese
+conisocus;suiden;italia;milano;piazza liberta 12;13231.0;213244.0;150;si;si;moldava

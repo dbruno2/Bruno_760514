@@ -1,11 +1,4 @@
 package src.theknife;
-/*
- * Sebastiano Svezia 760462 VA
- * Davide Bruno 760514 VA 
- * Fancesco Vieri 761195 VA
- * Leonardo Bighetti 760015 VA
- */
-
 
 
 import java.text.ParseException;
@@ -16,6 +9,9 @@ import java.util.List;
 import java.util.Scanner;
 import src.dao.*;
 import src.sicurezzaPassword.*;
+import javax.swing.*;
+import src.gui.MainFrame;
+
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
  * 
@@ -44,7 +40,11 @@ public class Theknife {
      * @param args argomenti passati da riga di comando (non utilizzati)
      */
     public static void main(String[] args) {
-           boolean running = true;
+
+        SwingUtilities.invokeLater(() -> new MainFrame());
+
+
+        /*  boolean running = true;
 
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
@@ -63,7 +63,7 @@ public class Theknife {
                 case "0" -> running = false;
                 default -> System.out.println("Scelta non valida");
             }
-        }
+        }*/
     }
     /**
      * Gestisce la procedura di login per clienti o ristoratori.
