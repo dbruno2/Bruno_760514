@@ -1,4 +1,4 @@
-package src.mapper;
+package mapper;
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 
@@ -10,10 +10,10 @@ package src.mapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import src.dto.Recensione;
-import src.dto.Ristorante;
-import src.dto.Utente;
-import src.sicurezzaPassword.Criptazione;
+import dto.Recensione;
+import dto.Ristorante;
+import dto.Utente;
+import sicurezzaPassword.Criptazione;
 /**
  * La classe {@code Mapper} è utilizzata per mappare oggetti di tipo {@link Utente}, {@link Ristorante} e {@link Recensione}
  * da e verso stringhe di testo. Queste stringhe sono solitamente utilizzate per la serializzazione e la deserializzazione

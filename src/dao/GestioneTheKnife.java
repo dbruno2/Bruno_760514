@@ -1,4 +1,5 @@
-package src.dao;
+package dao;
+
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 
@@ -13,14 +14,15 @@ package src.dao;
  */
 
 import java.io.*;
+import java.sql.SQLException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import src.dto.Ristorante;
-import src.mapper.Mapper;
+import dto.Ristorante;
+import mapper.Mapper;
 
 /**
  * Classe di utilita che gestisce le operazioni principali legate alla piattaforma TheKnife.
@@ -898,44 +900,23 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
  * @return            {@code true} se l'utente è stato registrato con successo, {@code false} se l'username esiste gia o si è verificato un errore.
  */
     public static boolean registraUtente(String nome, String cognome, String username, String password, String dataNascita, String domicilio, String ruolo, String preferiti) {
-    File file = new File(fileUtentiPath);
+        String url = "jdbc:postgresql://localhost:5432/theKnife";
+        String user = "postgres";
+        String pass =  "qwerty";
 
-    try {
-        // Crea file e directory se non esistono
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-            file.createNewFile();
+
+        PostgresDB db = new PostgresDB(url, user, pass);
+        String sql = "INSERT INTO utenti (username, password, nome, cognome, ruolo, data_nascita, indirizzo) VALUES (?, ?, ?, ?, ?::tipo_ruolo, ?::date, ?)";
+        try {
+            int rows = db.execute(sql, username, password, nome, cognome, ruolo, dataNascita, domicilio);
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'inserimento nel DB: " + e.getMessage());
+            return false;
         }
 
-        // Controlla se l'username esiste gia
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] campi = line.split(",");
-            if (campi.length > 2 && campi[2].equals(username)) {
-                reader.close();
-                return false;
-            }
-        }
-        reader.close();
 
-        // Scrittura del nuovo utente
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
 
-        // Se il file non è vuoto, aggiungi una newline prima del nuovo record
-        if (file.length() > 0) {
-            writer.newLine();
-        }
-
-        String riga = nome + "," + cognome + "," + username + "," + password + "," + dataNascita + "," + domicilio + "," + ruolo + "," + preferiti;
-        writer.write(riga);
-        writer.close();
-        return true;
-
-    } catch (IOException e) {
-        e.printStackTrace();
-        return false;
-    }
 }
     
 /**

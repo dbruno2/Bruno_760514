@@ -1,5 +1,5 @@
 
-package src.sicurezzaPassword;
+package sicurezzaPassword;
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 

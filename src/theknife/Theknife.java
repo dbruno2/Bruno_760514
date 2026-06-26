@@ -1,4 +1,11 @@
-package src.theknife;
+package theknife;
+/*
+ * Sebastiano Svezia 760462 VA
+ * Davide Bruno 760514 VA 
+ * Fancesco Vieri 761195 VA
+ * Leonardo Bighetti 760015 VA
+ */
+
 
 
 import java.text.ParseException;
@@ -7,11 +14,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Scanner;
-import src.dao.*;
-import src.sicurezzaPassword.*;
-import javax.swing.*;
-import src.gui.MainFrame;
-
+import dao.*;
+import sicurezzaPassword.*;
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
  * 
@@ -40,11 +44,7 @@ public class Theknife {
      * @param args argomenti passati da riga di comando (non utilizzati)
      */
     public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> new MainFrame());
-
-
-        /*  boolean running = true;
+           boolean running = true;
 
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
@@ -63,7 +63,7 @@ public class Theknife {
                 case "0" -> running = false;
                 default -> System.out.println("Scelta non valida");
             }
-        }*/
+        }
     }
     /**
      * Gestisce la procedura di login per clienti o ristoratori.
@@ -123,13 +123,14 @@ public class Theknife {
 
         System.out.print("Data di nascita (dd/MM/yyyy) - facoltativa, premi Invio per saltare: ");
         String dataNascitaInput = scanner.nextLine().trim();
+        Calendar dataNascitaCal;
 
-        Calendar dataNascitaCal = parseDataNascita(dataNascitaInput);
-        if (dataNascitaCal == null) {
+        try {
+            dataNascitaCal = parseDataNascita(dataNascitaInput);
+        } catch (IllegalArgumentException e) {
             System.out.println("Registrazione annullata a causa di data non valida.");
             return;
         }
-
         System.out.print("Domicilio: ");
         String domicilio = scanner.nextLine().trim();
         System.out.print("Ruolo (cliente/ristoratore): ");
@@ -139,9 +140,9 @@ public class Theknife {
             System.out.println("Domicilio obbligatorio e ruolo deve essere 'cliente' o 'ristoratore'.");
             return;
         }
-
+        String dataNascitaStr=null;
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String dataNascitaStr = outputFormat.format(dataNascitaCal.getTime());
+        if(dataNascitaCal!=null){  dataNascitaStr = outputFormat.format(dataNascitaCal.getTime());}
 
         boolean registrato = GestioneTheKnife.registraUtente(
                 nome, cognome, username, passwordCriptata,
@@ -164,7 +165,7 @@ public class Theknife {
     private static Calendar parseDataNascita(String inputData) {
         if (inputData == null || inputData.trim().isEmpty()) {
             // Data "vuota": impostiamo 1 gennaio anno 0
-            return new GregorianCalendar(0, 0, 1);
+            return null;
         } else {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -174,7 +175,8 @@ public class Theknife {
                 return cal;
             } catch (ParseException e) {
                 System.out.println("Formato data non valido. Usa dd/MM/yyyy.");
-                return null;
+                throw new IllegalArgumentException();
+
             }
         }
     }
