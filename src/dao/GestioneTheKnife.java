@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import dto.Ristorante;
 import mapper.Mapper;
+import sicurezzaPassword.Criptazione;
 
 /**
  * Classe di utilita che gestisce le operazioni principali legate alla piattaforma TheKnife.
@@ -57,7 +58,12 @@ public class GestioneTheKnife {
      */
      public static final String fileRecensioniPath = Paths.get("..", "dati", "recensioni.txt").normalize().toString();
 
-    
+    static String url = "jdbc:postgresql://localhost:5432/theKnife";
+    static String user = "postgres";
+    static String pass =  "qwerty";
+
+
+   static PostgresDB db = new PostgresDB(url, user, pass);
   /**
  * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.
  * <p>
@@ -793,97 +799,44 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
  *
  * @param username  lo username inserito dall’utente
  * @param password  la password associata all’utente
- * @param ruolo     il ruolo atteso (es. "utente", "ristoratore", "admin")
  * @return {@code true} se login riuscito, {@code false} in caso di errore o credenziali non valide
  */
-    public static boolean loginUtenteU(String username, String password, String ruolo) {
+    public static String login(String username, String password) {
 
-        if (username == null || password == null || ruolo == null || username.isEmpty() || password.isEmpty() || ruolo.isEmpty()) {
+        if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
             System.out.println("Username o password vuoti.");
-            return false;
+            return "false";
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(fileUtentiPath))) {
-            String linea;
 
-            while ((linea = br.readLine()) != null) {
-                String[] campi = linea.split(",", -1);
 
-                String usernameFile = campi[2].trim();
-                String passwordCifrataFile = campi[3].trim();
-                String ruoloFile = campi[6].trim();
+        try {
+            String sql = "SELECT password,ruolo FROM utenti WHERE username = ?;";
+            List<Map<String, Object>> risultati = db.executeSelect(sql, username);
 
-                if (usernameFile.equals(username)) {
-                    if (password.equals(passwordCifrataFile)) {
-                        if(ruolo.equals(ruoloFile)){
-                            return true;
-                        }
-                    } else {
-                        System.out.println("Password errata.");
-                        return false;
-                    }
-                }
+            if (risultati.isEmpty()) {
+                System.out.println("Username non trovato.");
+                return "false";
             }
-        } catch (IOException e) {
-            System.err.println("Errore nella lettura del file utenti: " + e.getMessage());
-            return false;
+
+            Map<String, Object> utente = risultati.get(0); //dal momento che la query restituisce (se c'è) 1 utente solo
+            //visto che abbiamo messo unique per il nome utente non c'è bisogno di scorrere tutta la lista
+
+
+            if (Criptazione.confronta(password, (String) utente.get("password"))) {
+                return "true,"+utente.get("ruolo");
+            }
+
+            System.out.println("Credenziali non valide.");
+            return "false";
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'accesso al database: " + e.getMessage());
+            return "false";
         }
 
-        System.out.println("Username non trovato.");
-        return false;
     }
 
-    /**
- * Verifica le credenziali dell'utente leggendo i dati da un file.
- *
- * @param username              Il nome utente inserito.
- * @param passwordCriptataInput La password criptata inserita.
- * @param ruolo                 Il ruolo dell'utente.
- * @return                      {@code true} se le credenziali corrispondono a un utente nel file, altrimenti {@code false}.
- */
-    public static boolean loginUtenteR(String username, String passwordCriptataInput, String ruolo) {
-    if (username == null || passwordCriptataInput == null || ruolo == null || username.isEmpty() || passwordCriptataInput.isEmpty() || ruolo.isEmpty()) {
-        System.out.println("Username o password vuoti.");
-        return false;
-    }
 
-    try (BufferedReader br = new BufferedReader(new FileReader(fileUtentiPath))) {
-        String linea;
-        while ((linea = br.readLine()) != null) {
-            String[] campi = linea.split(",", -1);
-
-            if (campi.length <= 6) {
-                System.out.println("Linea utenti malformata: " + linea);
-                continue;
-            }
-
-            String usernameFile = campi[2].trim();
-            String passwordFile = campi[3].trim();
-            String ruoloFile = campi[6].trim();
-
-
-            if (usernameFile.equals(username)) {
-                if (passwordFile.equals(passwordCriptataInput)) {
-                    if (ruolo.equals(ruoloFile)) {
-                        return true;
-                    } else {
-                        System.out.println("Ruolo non corrisponde.");
-                        return false;
-                    }
-                } else {
-                    System.out.println("Password errata.");
-                    return false;
-                }
-            }
-        }
-    } catch (IOException e) {
-        System.err.println("Errore nella lettura del file utenti: " + e.getMessage());
-        return false;
-    }
-
-    System.out.println("Username non trovato.");
-    return false;
-}
 
 /**
  * Registra un nuovo utente nel file specificato. Se il file non esiste, viene creato.
@@ -900,12 +853,7 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
  * @return            {@code true} se l'utente è stato registrato con successo, {@code false} se l'username esiste gia o si è verificato un errore.
  */
     public static boolean registraUtente(String nome, String cognome, String username, String password, String dataNascita, String domicilio, String ruolo, String preferiti) {
-        String url = "jdbc:postgresql://localhost:5432/theKnife";
-        String user = "postgres";
-        String pass =  "qwerty";
 
-
-        PostgresDB db = new PostgresDB(url, user, pass);
         String sql = "INSERT INTO utenti (username, password, nome, cognome, ruolo, data_nascita, indirizzo) VALUES (?, ?, ?, ?, ?::tipo_ruolo, ?::date, ?)";
         try {
             int rows = db.execute(sql, username, password, nome, cognome, ruolo, dataNascita, domicilio);
