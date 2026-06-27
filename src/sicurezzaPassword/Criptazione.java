@@ -1,5 +1,7 @@
 
 package sicurezzaPassword;
+import org.mindrot.jbcrypt.BCrypt;
+
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 
@@ -30,23 +32,30 @@ public class Criptazione {
      * @return Una stringa criptata, dove ogni carattere è stato spostato nel suo valore ASCII.
      */
 	public static String critta(String testoChiaro) {
-		String risultato = new String();
-		 // Itera attraverso ogni carattere della stringa e applica lo spostamento
-		for (int i = 0; i < testoChiaro.length(); i++) {
-			char c = testoChiaro.charAt(i);
-			char carattereCriptato = (char) (c + CHIAVE);
-			risultato = risultato + carattereCriptato;
-		}
 
-		return risultato;
+		String pswHashata = BCrypt.hashpw(testoChiaro, BCrypt.gensalt(12));
+
+
+		return pswHashata;
 	}
 	 /**
      * Decripta una stringa di testo criptata spostando ogni carattere nel suo valore ASCII di 
      * un numero fisso di posizioni in senso opposto (contrario alla criptazione).
      * 
-     * @param testoCriptato La stringa di testo criptata da decriptare.
+     * @param pswUtente La stringa di testo criptata da decriptare.
      * @return Una stringa decriptata, dove ogni carattere è stato riportato alla sua forma originale.
      */
+
+	 public static boolean confronta(String pswUtente,String pswDb){
+
+		return BCrypt.checkpw(pswUtente, pswDb);
+	 }
+
+	 /*non serve piu dal momento che non abbiamo bisogno di decrittare le password(non la cancello ancora perche
+	 devo vedere se mapper non serve piu, per quel poco che ho visto serve solo per serializzare/deserializzare)
+	 per bcrypt c'è matches per confrontare quello che inserisce l'utente come psw
+	 * (dopo aver crittato quella psw) con quella nel db, si usa ad esempio:
+	 * boolean ok = encoder.matches("password", hash);*/
 	public static String decritta(String testoCriptato) {
 		String risultato = new String();
 		 // Itera attraverso ogni carattere della stringa criptata e applica lo spostamento inverso

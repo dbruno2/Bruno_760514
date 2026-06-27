@@ -54,18 +54,16 @@ public class Theknife {
 
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
-            System.out.println("1. Login Cliente");
-            System.out.println("2. Login Ristoratore");
-            System.out.println("3. Registrati");
-            System.out.println("4. Cerca Ristorante (guest)");
+            System.out.println("1. Login");
+            System.out.println("2. Registrati");
+            System.out.println("3. Cerca Ristorante (guest)");
             System.out.println("0. Esci");
             System.out.print("Scelta: ");
 
             switch (scanner.nextLine()) {
-                case "1" -> login("cliente");
-                case "2" -> login("ristoratore");
-                case "3" -> registrazione();
-                case "4" -> cercaRistoranti();
+                case "1" -> login();
+                case "2" -> registrazione();
+                case "3" -> cercaRistoranti();
                 case "0" -> running = false;
                 default -> System.out.println("Scelta non valida");
             }
@@ -74,41 +72,39 @@ public class Theknife {
     /**
      * Gestisce la procedura di login per clienti o ristoratori.
      * 
-     * @param ruolo "cliente" oppure "ristoratore"
+     *
      * @return {@code true} se il login va a buon fine, altrimenti {@code false}
      */
-    private static boolean login(String ruolo) {
+    private static boolean login() {
         System.out.print("Username: ");
         String username = scanner.nextLine().trim();
         System.out.print("Password: ");
         String password = scanner.nextLine().trim();
 
-        String passwordCriptata = Criptazione.critta(password);
 
-        boolean success = false;
-        if ("cliente".equals(ruolo)) {
-            success = GestioneTheKnife.loginUtenteU(username, passwordCriptata, ruolo);
-        } else if ("ristoratore".equals(ruolo)) {
-            success = GestioneTheKnife.loginUtenteR(username, passwordCriptata, ruolo);
-        }
 
-        if (success) {
+
+
+           String success = GestioneTheKnife.login(username, password);
+
+
+        if (success.equals("true,cliente")) {
             System.out.println("Login riuscito con successo!");
-            if ("cliente".equals(ruolo)) {
-                menuCliente(username);
-            } else {
-                menuRistoratore(username);
-            }
-        } else {
+            menuCliente(username);
+
+        }else if(success.equals("true,ristoratore")){
+            System.out.println("Login riuscito con successo!");
+            menuRistoratore(username);
+        }else {
             System.out.println("Login fallito. Username o password errati.");
         }
-        return success;
+        return false;
     }
     /**
      * Gestisce la procedura di registrazione di un nuovo utente.
      * <p>Richiede l'inserimento dei dati obbligatori e, in caso di successo,
      * delega alla classe {@code GestioneTheKnife} la persistenza delle
-     * informazioni.</p>
+     * informazioni che a sua volta delega a PostGresDB la connessione al server e l'esecuzione della query.
      */
     private static void registrazione() {
         System.out.print("Nome: ");
@@ -166,7 +162,8 @@ public class Theknife {
      * Effettua il parsing della data di nascita inserita dall'utente.
      * 
      * @param inputData data nel formato {@code dd/MM/yyyy}; se vuota ritorna 1/1/0000
-     * @return {@link Calendar} rappresentante la data, oppure {@code null} se il formato è errato
+     * @return {@link Calendar} rappresentante la data
+     * @throws IllegalArgumentException se il formato della data non è valido
      */
     private static Calendar parseDataNascita(String inputData) {
         if (inputData == null || inputData.trim().isEmpty()) {
