@@ -18,19 +18,15 @@ import org.mindrot.jbcrypt.BCrypt;
  * utilizzata solo come esempio o per applicazioni non critiche.</p>
  */
 public class Criptazione {
-	    /**
-     * La chiave utilizzata per la criptazione e decriptazione. In questo caso, la chiave è 6, 
-     * il che significa che ogni carattere del testo verra spostato di 6 posizioni nel suo valore ASCII.
-     */
+
 
 	private static final int CHIAVE = 6;
-	/**
-     * Cripta una stringa di testo chiaro (non criptato) spostando ogni carattere di un numero fisso 
-     * di posizioni nel suo valore ASCII.
-     * 
-     * @param testoChiaro La stringa di testo da criptare.
-     * @return Una stringa criptata, dove ogni carattere è stato spostato nel suo valore ASCII.
-     */
+
+	/**critta una password utilizzando l'algoritmo bcrypt, passando come argomenti la password in chiaro e un salt generato con fattore di lavoro (cost) pari a 12.
+	il cost factor determina il tempo che bcrypt ci impiega per calcolare l'hash, piu è alto più sarà difficile eseguire un attacco bruteforce, 12 è il valore comunemente usato
+	 nonchè buon compromesso tra prestazioni e sicurezza.
+	 * @param testoChiaro password da hashare
+	 * @return password hashata*/
 	public static String critta(String testoChiaro) {
 
 		String pswHashata = BCrypt.hashpw(testoChiaro, BCrypt.gensalt(12));
@@ -38,14 +34,14 @@ public class Criptazione {
 
 		return pswHashata;
 	}
-	 /**
-     * Decripta una stringa di testo criptata spostando ogni carattere nel suo valore ASCII di 
-     * un numero fisso di posizioni in senso opposto (contrario alla criptazione).
-     * 
-     * @param pswUtente La stringa di testo criptata da decriptare.
-     * @return Una stringa decriptata, dove ogni carattere è stato riportato alla sua forma originale.
-     */
 
+	/**
+	 * Confronta una password inserita dall'utente con una password hashata memorizzata nel database.
+	 *
+	 * @param pswUtente La password inserita dall'utente.
+	 * @param pswDb La password hashata memorizzata nel database.
+	 * @return {@code true} se le password corrispondono, {@code false} altrimenti.
+	 */
 	 public static boolean confronta(String pswUtente,String pswDb){
 
 		return BCrypt.checkpw(pswUtente, pswDb);

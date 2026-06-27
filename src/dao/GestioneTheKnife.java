@@ -16,11 +16,8 @@ package dao;
 import java.io.*;
 import java.sql.SQLException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import dto.Ristorante;
 import mapper.Mapper;
 import sicurezzaPassword.Criptazione;
@@ -64,7 +61,10 @@ public class GestioneTheKnife {
 
 
    static PostgresDB db = new PostgresDB(url, user, pass);
-  /**
+    private static double lat;
+    private static double lon;
+
+    /**
  * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.
  * <p>
  * La funzione valida i parametri in input, controlla la presenza di duplicati nel file, crea un nuovo oggetto
@@ -786,7 +786,7 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
     return true;
 }
     
-    
+
   /**
  * Verifica le credenziali di accesso di un utente, controllando username, password e ruolo.
  * <p>
@@ -1136,5 +1136,66 @@ public static boolean esisteRistorante(String nome, String luogo) {
     }
     return false;
 }
+public static void welcome() { //si è una reference a j cole!
+    System.out.println("benvenuto!inserire al fine di operare con coordinate geografiche corrette inserire nome citta(in inglese se sono grandi città (non varese)) e codice paese(es. IT per italia) dal quale si sta eseguendo il programma");
+    Scanner scanner = new Scanner(System.in);
+    System.out.println("inserire citta");
+    String nomeCitta = scanner.nextLine().trim();
+    System.out.println("inserire codice paese");
+    String codicePaese = scanner.nextLine().trim();
+
+    String sql = "SELECT\n" +
+            "    c.nome,\n" +
+            "    c.country_code,\n" +
+            "    r.nome AS regione,\n" +
+            "   \n" +
+            "    c.lat,\n" +
+            "    c.lon\n" +
+            "FROM citta c\n" +
+            "LEFT JOIN regioni r\n" +
+            "    ON r.codice = c.country_code || '.' || c.admin1_code\n" +
+            "\n" +
+            "WHERE c.nome ILIKE ?\n" +
+            "  AND c.country_code ILIKE ?";
+    List<Map<String, Object>> risultati = null;
+    try {
+        risultati = db.executeSelect(sql, nomeCitta, codicePaese);
+        if (risultati.size() == 1) {
+            Map<String, Object> citta = risultati.get(0);
+            lat = (Double) citta.get("lat");
+            lon = (Double) citta.get("lon");
+        } else if (risultati.size() > 1) {
+            System.out.println("Trovate più città corrispondenti. Seleziona la città corretta:");
+            for (int i = 0; i < risultati.size(); i++) {
+                Map<String, Object> citta = risultati.get(i);
+                String nome = (String) citta.get("nome");
+                String regione = (String) citta.get("regione");
+                String countryCode = (String) citta.get("country_code");
+                System.out.printf("%d: %s, %s (%s)%n", i + 1, nome, regione, countryCode);
+            }
+            int scelta = scanner.nextInt();
+            if (scelta >= 1 && scelta <= risultati.size()) {
+                Map<String, Object> cittaScelta = risultati.get(scelta - 1);
+                lat = (Double) cittaScelta.get("lat");
+                lon = (Double) cittaScelta.get("lon");
+            } else {
+                System.out.println("Scelta non valida. Riprova.");
+            }
+        } else {
+            System.out.println("Città non trovata. Inserire coordinate manualmente.");
+            System.out.println("Inserire latitudine:");
+            lat = scanner.nextDouble();
+            System.out.println("Inserire longitudine:");
+            lon = scanner.nextDouble();
+
+        }
+        System.out.println("le coordinate sono lat:"+lat+", lon:"+lon);
+    } catch (SQLException e) {
+        System.err.println("Errore durante l'esecuzione della query: " + e.getMessage());
+
+    }
+
 
 }
+}
+

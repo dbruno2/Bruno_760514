@@ -8,12 +8,11 @@ package theknife;
 
 
 
+import java.security.DigestInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+
 import dao.*;
 import sicurezzaPassword.*;
 /**
@@ -45,7 +44,7 @@ public class Theknife {
      */
     public static void main(String[] args) {
            boolean running = true;
-
+        GestioneTheKnife.welcome(); //memo: dare crediti del dataset a geoNames
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
             System.out.println("1. Login");
