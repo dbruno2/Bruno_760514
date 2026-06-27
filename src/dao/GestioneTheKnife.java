@@ -1182,12 +1182,21 @@ public static void welcome() { //si è una reference a j cole!
                 System.out.println("Scelta non valida. Riprova.");
             }
         } else {
-            System.out.println("Città non trovata. Inserire coordinate manualmente.");
-            System.out.println("Inserire latitudine:");
-            lat = scanner.nextDouble();
-            System.out.println("Inserire longitudine:");
-            lon = scanner.nextDouble();
-
+            while(true) {
+                try {
+                    System.out.println("Città non trovata. Inserire coordinate manualmente.");
+                    System.out.println("Inserire latitudine:");
+                    lat = scanner.nextDouble();
+                    if(lat<-90 || lat>90) {throw new InputMismatchException();}
+                    System.out.println("Inserire longitudine:");
+                    lon = scanner.nextDouble();
+                    if(lon<-180 || lon>180) {throw new InputMismatchException();}
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Input non valido. Assicurati di inserire numeri validi per latitudine e longitudine.");
+                    scanner.nextLine();
+                }
+            }
         }
         System.out.println("le coordinate sono lat:"+lat+", lon:"+lon);
     } catch (SQLException e) {
