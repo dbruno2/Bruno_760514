@@ -1,27 +1,60 @@
 package gui;
 
-
 import javax.swing.*;
-import java.awt.*;
-
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 public class ClienteFrame extends JFrame {
 
-    ClienteFrame(){
-        setTitle("");
+    public ClienteFrame() {
+        setTitle("ClienteFrame");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+
 
         JButton indietro = new JButton("Indietro");
 
+
+
+        // PANNELLO NORD
+
+        JPanel northPanel = new JPanel();
+        JLabel titolo = new JLabel("BENVENUTO");
+        titolo.setFont(getFont());
+        northPanel.add(titolo);
+
+        // PANNELLO CENTRALE
+
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+
+        JPanel formPanel = new JPanel(new GridLayout(2, 2, 15, 15));
+
+
+        centerPanel.add(formPanel);
+
+        // PANNELLO SUD
+
+        JPanel southPanel = new JPanel(new FlowLayout());
+
+        southPanel.add(indietro);
+
+        // funzionamento bottoni
+
         indietro.addActionListener(e -> {
-            new MainFrame(); // riapre la finestra precedente
-            dispose();       // chiude la finestra corrente
+            new LoginFrame();
+            dispose();
         });
 
-        JPanel panel= new JPanel(new GridLayout(1,1,10,10));
-        panel.setBorder(BorderFactory.createEmptyBorder(80, 200, 80, 200));
+        // aggiunta pannelli
 
-
-        panel.add(indietro);
-
-        add(panel);
+        add(northPanel, BorderLayout.NORTH);
+        add(centerPanel, BorderLayout.CENTER);
+        add(southPanel, BorderLayout.SOUTH);
+        setVisible(true);
     }
 }

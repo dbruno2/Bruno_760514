@@ -165,7 +165,7 @@ public class Theknife {
      * @return {@link Calendar} rappresentante la data
      * @throws IllegalArgumentException se il formato della data non è valido
      */
-    private static Calendar parseDataNascita(String inputData) {
+    public static Calendar parseDataNascita(String inputData) {
         if (inputData == null || inputData.trim().isEmpty()) {
             // Data "vuota": impostiamo 1 gennaio anno 0
             return null;

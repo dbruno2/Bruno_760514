@@ -1,7 +1,12 @@
 package gui;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 
 
 public class MainFrame extends JFrame {
@@ -16,28 +21,26 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel(new GridLayout(5, 1, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(80, 200, 80, 200));
 
-        JButton login = new JButton("Login Cliente");
-        login.addActionListener(e -> {
-            new LoginClienteFrame(); // apre la nuova finestra
-            dispose();        // chiude quella corrente
-        });
+        JLabel titolo = new JLabel("The Knife");
+        Font font = new Font("Arial", Font.BOLD, 30);
+        titolo.setFont(font);
 
-        JButton loginRis = new JButton("Login Ristoratore");
-        loginRis.addActionListener(e -> {
-            new LoginRisFrame(); // apre la nuova finestra
-            dispose();        // chiude quella corrente
+        JButton login = new JButton("Login");
+        login.addActionListener(e -> {
+            new LoginFrame();
+            dispose();
         });
 
         JButton reg = new JButton("Registrati");
         reg.addActionListener(e -> {
-            new RegFrame(); // apre la nuova finestra
-            dispose();        // chiude quella corrente
+            new RegFrame();
+            dispose();
         });
 
         JButton cercaRis = new JButton("Ricerca Ristorante - guest");
         cercaRis.addActionListener(e -> {
-            new LoginClienteFrame(); // apre la nuova finestra
-            dispose();        // chiude quella corrente
+            new GuestFrame();
+            dispose();
         });
 
         JButton esci = new JButton("Esci");
@@ -45,8 +48,9 @@ public class MainFrame extends JFrame {
             System.exit(0);
         });
 
+
+        panel.add(titolo);
         panel.add(login);
-        panel.add(loginRis);
         panel.add(reg);
         panel.add(cercaRis);
         panel.add(esci);
