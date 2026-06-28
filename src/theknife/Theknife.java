@@ -1,4 +1,4 @@
-
+package theknife;
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 
@@ -17,7 +17,7 @@ import java.util.Scanner;
 import dao.*;
 import sicurezzaPassword.*;
 import javax.swing.*;
-import src.gui.MainFrame;
+import gui.MainFrame;
 
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
@@ -165,7 +165,7 @@ public class Theknife {
      * @return {@link Calendar} rappresentante la data
      * @throws IllegalArgumentException se il formato della data non è valido
      */
-    private static Calendar parseDataNascita(String inputData) {
+    public static Calendar parseDataNascita(String inputData) {
         if (inputData == null || inputData.trim().isEmpty()) {
             // Data "vuota": impostiamo 1 gennaio anno 0
             return null;
