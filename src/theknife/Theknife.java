@@ -1,4 +1,4 @@
-
+package theknife;
 /*
  * Sebastiano Svezia 760462 VA
  * Davide Bruno 760514 VA 
@@ -8,17 +8,13 @@
 
 
 
+import java.security.DigestInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Scanner;
-import dao.*;
-import gui.MainFrame;
-import sicurezzaPassword.*;
-import javax.swing.*;
+import java.util.*;
 
+import dao.*;
+import sicurezzaPassword.*;
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
  * 
@@ -47,11 +43,7 @@ public class Theknife {
      * @param args argomenti passati da riga di comando (non utilizzati)
      */
     public static void main(String[] args) {
-            SwingUtilities.invokeLater(() -> new MainFrame());
-
-       /* sto commendo mi serve non cancellatemelo - SS the real g
-        boolean running = true;
-
+           boolean running = true;
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
             System.out.println("1. Login");
@@ -67,7 +59,7 @@ public class Theknife {
                 case "0" -> running = false;
                 default -> System.out.println("Scelta non valida");
             }
-        }*/
+        }
     }
     /**
      * Gestisce la procedura di login per clienti o ristoratori.
@@ -356,21 +348,18 @@ public class Theknife {
     private static void cercaRistoranti() {
         System.out.println("\n--- Ricerca avanzata ristoranti ---");
 
-        System.out.print("Inserisci zona geografica (obbligatorio): ");
-        String zona = scanner.nextLine().trim();
-        if (zona.isEmpty()) {
-            System.out.println("Zona geografica obbligatoria per la ricerca.");
-            return;
-        }
+        double[] coord = new double[2];
+        coord=GestioneTheKnife.findCoordinates();
 
         System.out.print("Tipologia di cucina (facoltativo): ");
         String cucina = scanner.nextLine().trim();
+        if(cucina.isEmpty()){
+            cucina = null;}
+        System.out.print("Prezzo minimo (facoltativo, premi Invio per saltare, se inserito deve essere compreso tra $ e $$$$): ");
+        String prezzoMin = leggiFasciaPrezzo();
 
-        System.out.print("Prezzo minimo (facoltativo, premi Invio per saltare): ");
-        Integer prezzoMin = leggiNumeroFacoltativo();
-
-        System.out.print("Prezzo massimo (facoltativo, premi Invio per saltare): ");
-        Integer prezzoMax = leggiNumeroFacoltativo();
+        System.out.print("Prezzo massimo (facoltativo, premi Invio per saltare, se inserito deve essere compreso tra $ e $$$$): ");
+        String prezzoMax = leggiFasciaPrezzo();
 
         System.out.print("Servizio delivery richiesto? (true/false/Invio per no filtro): ");
         Boolean delivery = leggiBooleanFacoltativo();
@@ -381,18 +370,13 @@ public class Theknife {
         System.out.print("Valutazione media minima (stelle, 1-5, facoltativo): ");
         Double stelleMin = leggiDoubleFacoltativo();
 
-        List<String> risultati = GestioneTheKnife.cercaRistorantiAvanzata(
-                zona, cucina,
-                prezzoMin, prezzoMax,
-                delivery, prenotazione,
-                stelleMin
-        );
+        System.out.println("inserire raggio di ricerca (è in km)");
+        int rad=scanner.nextInt();
 
-        if (risultati.isEmpty()) {
-            System.out.println("Nessun Ristorante trovato con i criteri indicati.");
-        } else {
-            stampaRistoranti(risultati);
-        }
+        System.out.println(coord[0] + ", " + coord[1] + ", " + cucina + ", " + prezzoMin + ", " + prezzoMax + ", " + delivery + ", " + prenotazione + ", " + stelleMin + ", " + rad);
+        GestioneTheKnife.cercaRistorantiAvanzata(coord[0], coord[1], cucina, prezzoMin, prezzoMax, delivery, prenotazione, stelleMin, rad);
+
+
     }
 
 /**
@@ -495,6 +479,16 @@ private static void stampaRistoranti(List<String> ristoranti) {
             System.out.println("Numero non valido, filtro ignorato.");
             return null;
         }
+    }
+    private static String  leggiFasciaPrezzo() {
+        while(true) {
+            String input = scanner.nextLine().trim();
+            if(input.isEmpty()){ return null;}
+        if(input.equals("$")||input.equals("$$")||input.equals("$$$")||input.equals("$$$$")) return input;
+        else System.err.println("il valore inserito deve essere tra $ e $$$$!");}
+
+
+
     }
 
 }

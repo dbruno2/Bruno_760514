@@ -16,11 +16,8 @@ package dao;
 import java.io.*;
 import java.sql.SQLException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import dto.Ristorante;
 import mapper.Mapper;
 import sicurezzaPassword.Criptazione;
@@ -64,7 +61,10 @@ public class GestioneTheKnife {
 
 
    static PostgresDB db = new PostgresDB(url, user, pass);
-  /**
+    private static double lat;
+    private static double lon;
+
+    /**
  * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.
  * <p>
  * La funzione valida i parametri in input, controlla la presenza di duplicati nel file, crea un nuovo oggetto
@@ -786,7 +786,7 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
     return true;
 }
     
-    
+
   /**
  * Verifica le credenziali di accesso di un utente, controllando username, password e ruolo.
  * <p>
@@ -868,86 +868,75 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
 }
     
 /**
- * Cerca ristoranti in base a criteri avanzati, leggendo i dati da un file.
- * Filtra i risultati in base alla zona, tipo di cucina, fascia di prezzo, disponibilita di delivery o prenotazione,
- * e numero minimo di stelle.
- *
- * @param zona          La zona in cui cercare i ristoranti.
- * @param cucina        Il tipo di cucina desiderato.
- * @param prezzoMin     Il prezzo minimo del Ristorante.
- * @param prezzoMax     Il prezzo massimo del Ristorante.
- * @param delivery      Indica se il Ristorante offre servizio di consegna.
- * @param prenotazione  Indica se il Ristorante accetta prenotazioni.
- * @param stelleMin     Il numero minimo di stelle del Ristorante basato sulle recensioni.
- * @return              Una lista di descrizioni testuali dei ristoranti che rispettano i criteri specificati.
+ * Cerca ristoranti nel db in base a criteri(opzionali tranne il raggio di ricerca) scelti dall'utente.
+ * @param lat latitudine
+ * @param lon longitudine
+ * @param cucina tipo di cucina
+ * @param prezzoMin prezzo minimo
+ * @param prezzoMax prezzo massimo
+ * @param delivery disponibilità di delivery
+ * @param prenotazione disponibilità di prenotazione
+ * @param stelleMin numero minimo di stelle
+ * @param rad raggio di ricerca
  */
-    public static List<String> cercaRistorantiAvanzata(
-    String zona,
+    public static void cercaRistorantiAvanzata(
+    Double lat,
+    Double lon,
     String cucina,
-    Integer prezzoMin,
-    Integer prezzoMax,
+    String prezzoMin,
+    String prezzoMax,
     Boolean delivery,
     Boolean prenotazione,
-    Double stelleMin
+    Double stelleMin,
+    int rad
 ) {
-    List<String> risultati = new ArrayList<>();
-    File file = new File(fileRistorantiPath);
-
-    if (!file.exists()) {
-        System.out.println("File dei ristoranti non trovato.");
-        return risultati;
-    }
-
-    int campiMinimi = 11; // Numero minimo di campi nel file ristoranti
-
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-        String line;
-
-        while ((line = reader.readLine()) != null) {
-            if (line.trim().isEmpty()) continue; // salta righe vuote
-
-            String[] campi = line.split(";");
-            if (campi.length < campiMinimi) continue; // salta righe malformate
-
-            Ristorante r = Mapper.mapObjRistorante(line);
-            if (r == null) continue;
-
-            // Filtri
-            if (zona != null && !zona.isEmpty() && !r.getCitta().equalsIgnoreCase(zona)) continue;
-
-            if (cucina != null && !cucina.isEmpty() && !r.getTipo_Cucina().toLowerCase().contains(cucina.toLowerCase())) continue;
-
-            if (prezzoMin != null && r.getPrezzo() < prezzoMin) continue;
-            if (prezzoMax != null && r.getPrezzo() > prezzoMax) continue;
-
-            if (delivery != null && r.isDisponibilita_delivery() != delivery) continue;
-            if (prenotazione != null && r.isDisponibilita_prenotazione() != prenotazione) continue;
-
-            if (stelleMin != null) {
-                double mediaStelle = calcolaMediaStelle(r.getNome());
-                if (mediaStelle < stelleMin) continue;
+        String sql = "SELECT r.* " +
+                "FROM ( " +
+                "    SELECT r_inner.*, " +
+                "           (6371 * 2 * ASIN( " +
+                "               SQRT( " +
+                "                   POWER(SIN(RADIANS(r_inner.latitudine - ?) / 2), 2) + " +
+                "                   COS(RADIANS(?)) * " +
+                "                   COS(RADIANS(r_inner.latitudine)) * " +
+                "                   POWER(SIN(RADIANS(r_inner.longitudine - ?) / 2), 2) " +
+                "               ) " +
+                "           )) AS distanza_km " +
+                "    FROM ristoranti_the_knife r_inner " +
+                ") r " +
+                "WHERE r.distanza_km <= ? " +
+                "AND LOWER(r.tipo_cucina) = LOWER(COALESCE(?, r.tipo_cucina)) " +
+                "AND LENGTH(r.fascia_prezzo) >= COALESCE(LENGTH(?), 1) " +
+                "AND LENGTH(r.fascia_prezzo) <= COALESCE(LENGTH(?), 4) " +
+                "AND r.delivery = COALESCE(?, r.delivery) " +
+                "AND r.prenotabile = COALESCE(?, r.prenotabile) " +
+                "AND ( " +
+                "    SELECT COALESCE(AVG(rec.valutazione), 0) " +
+                "    FROM recensione rec " +
+                "    WHERE rec.id_ristorante = r.id_ristorante " +
+                ") >= COALESCE(?, 0) " +
+                "ORDER BY r.distanza_km ASC;";
+        List<Map<String, Object>> risultati = null;
+        try {
+            risultati = db.executeSelect(sql,lat, lat, lon, rad, cucina,  prezzoMin,  prezzoMax,  delivery, prenotazione, stelleMin );
+            if (risultati.isEmpty()) {System.out.println("Non sono stati trovati ristoranti secondo quei criteri");}
+            else if (!risultati.isEmpty()) {
+                System.out.println("Lista dei risultati:");
+                for (Map<String, Object> ristorante : risultati) {
+                    System.out.println("Nome: " + ristorante.get("nome_ristorante"));
+                    System.out.println("paese: " + ristorante.get("nazione"));
+                    System.out.println("citta: " + ristorante.get("citta"));
+                    System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
+                    System.out.println("Fascia di prezzo: " + ristorante.get("fascia_prezzo"));
+                    System.out.println("Delivery: " + (Boolean.TRUE.equals(ristorante.get("delivery")) ? "Si" : "No"));
+                    System.out.println("Prenotabile: " + (Boolean.TRUE.equals(ristorante.get("prenotabile")) ? "Si" : "No"));
+                    System.out.println("Distanza: " + Math.round((Double) ristorante.get("distanza_km")) + " km");
+                    System.out.println("----------------------------------------");
+                }
             }
-
-            // Aggiungi descrizione
-            String descrizione = String.format(
-                "%s - %s, %s\nIndirizzo: %s\nPrezzo medio: %deuro\nDelivery: %s - Prenotazione: %s\nTipo cucina: %s\n",
-                r.getNome(), r.getUsername_ristoratore(), r.getCitta(), r.getIndirizzo(), r.getPrezzo(),
-                r.isDisponibilita_delivery() ? "Si" : "No",
-                r.isDisponibilita_prenotazione() ? "Si" : "No",
-                r.getTipo_Cucina()
-            );
-            risultati.add(descrizione);
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'esecuzione della query: " + e.getMessage());
         }
 
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-
-    if (risultati.isEmpty()) {
-        risultati.add("Nessun Ristorante trovato con i criteri indicati.");
-    }
-
-    return risultati;
 }
 
 /**
@@ -1136,5 +1125,79 @@ public static boolean esisteRistorante(String nome, String luogo) {
     }
     return false;
 }
+public static double[] findCoordinates() {
+    double[] coord = new double[2];
+    System.out.println("al fine di operare con coordinate geografiche corrette inserire nome citta(in inglese se sono grandi città (non varese)) e codice paese(es. IT per italia)");
+    Scanner scanner = new Scanner(System.in);
+    System.out.println("inserire citta");
+    String nomeCitta = scanner.nextLine().trim();
+    System.out.println("inserire codice paese");
+    String codicePaese = scanner.nextLine().trim();
+
+    String sql = "SELECT\n" +
+            "    c.nome,\n" +
+            "    c.country_code,\n" +
+            "    r.nome AS regione,\n" +
+            "   \n" +
+            "    c.lat,\n" +
+            "    c.lon\n" +
+            "FROM citta c\n" +
+            "LEFT JOIN regioni r\n" +
+            "    ON r.codice = c.country_code || '.' || c.admin1_code\n" +
+            "\n" +
+            "WHERE c.nome ILIKE ?\n" +
+            "  AND c.country_code ILIKE ?";
+    List<Map<String, Object>> risultati = null;
+    try {
+        risultati = db.executeSelect(sql, nomeCitta, codicePaese);
+        if (risultati.size() == 1) {
+            Map<String, Object> citta = risultati.get(0);
+            lat = (Double) citta.get("lat");
+            lon = (Double) citta.get("lon");
+        } else if (risultati.size() > 1) {
+            System.out.println("Trovate più città corrispondenti. Seleziona la città corretta:");
+            for (int i = 0; i < risultati.size(); i++) {
+                Map<String, Object> citta = risultati.get(i);
+                String nome = (String) citta.get("nome");
+                String regione = (String) citta.get("regione");
+                String countryCode = (String) citta.get("country_code");
+                System.out.printf("%d: %s, %s (%s)%n", i + 1, nome, regione, countryCode);
+            }
+            int scelta = scanner.nextInt();
+            if (scelta >= 1 && scelta <= risultati.size()) {
+                Map<String, Object> cittaScelta = risultati.get(scelta - 1);
+                lat = (Double) cittaScelta.get("lat");
+                lon = (Double) cittaScelta.get("lon");
+            } else {
+                System.out.println("Scelta non valida. Riprova.");
+            }
+        } else {
+            while(true) {
+                try {
+                    System.out.println("Città non trovata. Inserire coordinate manualmente.");
+                    System.out.println("Inserire latitudine:");
+                    lat = scanner.nextDouble();
+                    if(lat<-90 || lat>90) {throw new InputMismatchException();}
+                    System.out.println("Inserire longitudine:");
+                    lon = scanner.nextDouble();
+                    if(lon<-180 || lon>180) {throw new InputMismatchException();}
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Input non valido. Assicurati di inserire numeri validi per latitudine e longitudine.");
+                    scanner.nextLine();
+                }
+            }
+        }
+        coord[0] = lat;
+        coord[1] = lon;
+        System.out.println("le coordinate sono lat:"+coord[0]+", lon:"+coord[1]);
+
+    } catch (SQLException e) {
+        System.err.println("Errore durante l'esecuzione della query: " + e.getMessage());
+
+    }
+    return coord;
+}
 
 }
+
