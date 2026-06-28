@@ -868,18 +868,16 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
 }
     
 /**
- * Cerca ristoranti in base a criteri avanzati, leggendo i dati da un file.
- * Filtra i risultati in base alla zona, tipo di cucina, fascia di prezzo, disponibilita di delivery o prenotazione,
- * e numero minimo di stelle.
- *
- *
- * @param cucina        Il tipo di cucina desiderato.
- * @param prezzoMin     Il prezzo minimo del Ristorante.
- * @param prezzoMax     Il prezzo massimo del Ristorante.
- * @param delivery      Indica se il Ristorante offre servizio di consegna.
- * @param prenotazione  Indica se il Ristorante accetta prenotazioni.
- * @param stelleMin     Il numero minimo di stelle del Ristorante basato sulle recensioni.
- * @return              Una lista di descrizioni testuali dei ristoranti che rispettano i criteri specificati.
+ * Cerca ristoranti nel db in base a criteri(opzionali tranne il raggio di ricerca) scelti dall'utente.
+ * @param lat latitudine
+ * @param lon longitudine
+ * @param cucina tipo di cucina
+ * @param prezzoMin prezzo minimo
+ * @param prezzoMax prezzo massimo
+ * @param delivery disponibilità di delivery
+ * @param prenotazione disponibilità di prenotazione
+ * @param stelleMin numero minimo di stelle
+ * @param rad raggio di ricerca
  */
     public static void cercaRistorantiAvanzata(
     Double lat,
@@ -908,7 +906,7 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
                 "WHERE r.distanza_km <= ? " +
                 "AND LOWER(r.tipo_cucina) = LOWER(COALESCE(?, r.tipo_cucina)) " +
                 "AND LENGTH(r.fascia_prezzo) >= COALESCE(LENGTH(?), 1) " +
-                "AND LENGTH(r.fascia_prezzo) <= COALESCE(LENGTH(?), 5) " +
+                "AND LENGTH(r.fascia_prezzo) <= COALESCE(LENGTH(?), 4) " +
                 "AND r.delivery = COALESCE(?, r.delivery) " +
                 "AND r.prenotabile = COALESCE(?, r.prenotabile) " +
                 "AND ( " +
