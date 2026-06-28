@@ -38,32 +38,15 @@ public class GestioneTheKnife {
     
     // Path dinamici
 
-    /**
-     * Percorso del file contenente i dati degli utenti.
-     */
-    public static final String fileUtentiPath = Paths.get("..", "dati", "utenti.txt").normalize().toString();
+    PostgresDB db;
 
+    public GestioneTheKnife(PostgresDB db) {
+        this.db = db;
+    }
 
-    /**
-     * Percorso del file contenente i dati dei ristoranti.
-     */
-    public static final String fileRistorantiPath = Paths.get("..", "dati", "ristoranti.txt").normalize().toString();
+    public GestioneTheKnife() {
 
-
-    /**
-     * Percorso del file contenente i dati delle recensioni.
-     */
-     public static final String fileRecensioniPath = Paths.get("..", "dati", "recensioni.txt").normalize().toString();
-
-    static String url = "jdbc:postgresql://localhost:5432/theKnife";
-    static String user = "postgres";
-    static String pass =  "qwerty";
-
-
-   static PostgresDB db = new PostgresDB(url, user, pass);
-    private static double lat;
-    private static double lon;
-
+    }
     /**
  * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.
  * <p>

@@ -1,6 +1,7 @@
 package serverTK;
 
 import dao.GestioneTheKnife;
+import dao.PostgresDB;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,8 +12,14 @@ public class serverTK {
     GestioneTheKnife gk;
     public static final int PORTA = 4444;
 
+    public static final String DB_HOST = "localhost";
+    public static final int DB_PORT = 5432;
+    public static final String DB_NAME = "theKnife";
+
     public serverTK() {
         try {
+            PostgresDB db = new PostgresDB(DB_HOST, DB_PORT, DB_NAME);
+            gk = new GestioneTheKnife(db);
             serverSocket = new ServerSocket(PORTA);
         } catch (Exception e) {
             System.err.println("[serverTK] Impossibile creare il ServerSocket sulla porta " + PORTA
