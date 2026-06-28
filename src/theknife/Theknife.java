@@ -15,9 +15,9 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Scanner;
 import dao.*;
+import gui.MainFrame;
 import sicurezzaPassword.*;
 import javax.swing.*;
-import src.gui.MainFrame;
 
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
