@@ -430,7 +430,7 @@ public static boolean rispondiRecensione(int usernameLoggato, String nomeRistora
  * @return true se il Ristorante è stato aggiunto con successo, false in caso di input non valido,
  *         Ristorante gia presente o errore durante lettura/scrittura del file
  */
-    public static boolean aggiungiPreferito(String usernameCliente, String nomeRistorante, String luogoRistorante) {    //aggiunge un Ristorante al campo preferiti dell'utente che ha effettuato il login
+   /* public static boolean aggiungiPreferito(int id,) {    //aggiunge un Ristorante al campo preferiti dell'utente che ha effettuato il login
 
         List<String> utentiAggiornati = new ArrayList<>();
         boolean aggiornato = false;
@@ -504,7 +504,7 @@ public static boolean rispondiRecensione(int usernameLoggato, String nomeRistora
 
         return true;       //se tutto è andato a buon fine ritorno true
     }
-
+*/
   /**
  * Rimuove un Ristorante dalla lista dei preferiti dell'utente specificato.
  * <p>
@@ -812,7 +812,54 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
 
 
 }
-    
+public static void showRecommended(){
+        System.out.println("inserire località dalla quale si sta eseguendo theKnife");
+        double[] coords= findCoordinates();
+        String sql="SELECT *\n" +
+                "FROM (\n" +
+                "    SELECT *\n" +
+
+                "        ,(\n" +
+                "            6371 * ACOS(\n" +
+                "                COS(RADIANS(?)) *\n" +
+                "                COS(RADIANS(r.latitudine)) *\n" +
+                "                COS(RADIANS(r.longitudine) - RADIANS(?)) +\n" +
+                "                SIN(RADIANS(?)) *\n" +
+                "                SIN(RADIANS(r.latitudine))\n" +
+                "            )\n" +
+                "        ) AS distanza_km,\n" +
+                "        AVG(rec.valutazione) AS valutazione_media\n" +
+                "    FROM ristoranti_the_knife r\n" +
+                "    LEFT JOIN recensione rec\n" +
+                "        ON rec.id_ristorante = r.id_ristorante\n" +
+                "    GROUP BY r.id_ristorante, rec.id_recensione\n" +
+                ") t\n" +
+                "WHERE t.distanza_km <= ?\n" +
+                "ORDER BY t.distanza_km;";
+    List<Map<String, Object>> risultati=null ;
+    try {
+        risultati=db.executeSelect(sql,coords[0],coords[1],coords[0],10);
+        if (risultati.isEmpty()) {System.out.println("non abbiamo ristoranti nella sua zona da consigliare...");}
+        else if (!risultati.isEmpty()) {
+            System.out.println("le consigliamo questi ristoranti:");
+            for (Map<String, Object> ristorante : risultati) {
+                System.out.println("Nome: " + ristorante.get("nome_ristorante"));
+                System.out.println("paese: " + ristorante.get("nazione"));
+                System.out.println("citta: " + ristorante.get("citta"));
+                System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
+                System.out.println("Fascia di prezzo: " + ristorante.get("fascia_prezzo"));
+                System.out.println("Delivery: " + (Boolean.TRUE.equals(ristorante.get("delivery")) ? "Si" : "No"));
+                System.out.println("Prenotabile: " + (Boolean.TRUE.equals(ristorante.get("prenotabile")) ? "Si" : "No"));
+                System.out.println("valutazione: " + ristorante.get("valutazione_media"));
+                System.out.println("Distanza: " + Math.round((Double) ristorante.get("distanza_km")) + " km");
+                System.out.println("----------------------------------------");
+            }
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException(e);
+    }
+
+}
 /**
  * Cerca ristoranti nel db in base a criteri(opzionali tranne il raggio di ricerca) scelti dall'utente.
  * @param lat latitudine

@@ -205,11 +205,11 @@ public class Theknife {
 
                     if (!GestioneTheKnife.esisteRistorante(nome, luogo)) {
                         System.out.println("Errore: il Ristorante indicato non esiste.");
-                    } else {
+                    } /*else {
                         boolean aggiunto = GestioneTheKnife.aggiungiPreferito(username, nome, luogo);
                         if (aggiunto) System.out.println("Ristorante aggiunto ai preferiti.");
                         else System.out.println("Errore nell'aggiunta ai preferiti.");
-                    }
+                    }*/
                 }
                 case "2" -> {
                     System.out.print("Nome Ristorante: ");
@@ -349,6 +349,7 @@ public class Theknife {
  * Se vengono trovati ristoranti corrispondenti ai criteri, li stampa a schermo.
  */
     private static void cercaRistoranti() {
+        GestioneTheKnife.showRecommended();
         System.out.println("\n--- Ricerca avanzata ristoranti ---");
 
         double[] coord = new double[2];
