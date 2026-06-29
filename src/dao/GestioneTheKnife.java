@@ -1163,13 +1163,22 @@ public static double[] findCoordinates() {
                 String countryCode = (String) citta.get("country_code");
                 System.out.printf("%d: %s, %s (%s)%n", i + 1, nome, regione, countryCode);
             }
-            int scelta = scanner.nextInt();
-            if (scelta >= 1 && scelta <= risultati.size()) {
-                Map<String, Object> cittaScelta = risultati.get(scelta - 1);
-                lat = (Double) cittaScelta.get("lat");
-                lon = (Double) cittaScelta.get("lon");
-            } else {
-                System.out.println("Scelta non valida. Riprova.");
+            while(true) {
+                try {
+                    int scelta = scanner.nextInt();
+                    if (scelta >= 1 && scelta <= risultati.size()) {
+                        Map<String, Object> cittaScelta = risultati.get(scelta - 1);
+                        lat = (Double) cittaScelta.get("lat");
+                        lon = (Double) cittaScelta.get("lon");
+                        break;
+                    } else {
+                        System.out.println("Scelta non valida. Riprova.");
+                    }
+                }
+                catch(InputMismatchException e) {
+                    System.err.println("inserire un valore valido");
+                    scanner.next();
+                }
             }
         } else {
             while(true) {
