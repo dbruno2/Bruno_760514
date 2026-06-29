@@ -66,69 +66,36 @@ public class GestioneTheKnife {
  * @return true se il Ristorante è stato aggiunto correttamente, false in caso di errore o dati duplicati
  */
 
-public static boolean aggiungiRistorante(String nome, String usernameRistoratore, String nazione, String citta, String indirizzo, int latitudine,
-    int longitudine, int prezzo, boolean disponibilita_delivery, boolean disponibilita_prenotazione,
-    String tipo_Cucina) {
+public static boolean aggiungiRistorante(String nome, int idRistoratore, String nazione, String citta, String indirizzo, int latitudine,
+    int longitudine, String prezzo, boolean disponibilita_delivery, boolean disponibilita_prenotazione,
+    String tipo_Cucina  ) {
 
     if (nome == null || nome.isEmpty() ||
-        usernameRistoratore == null || usernameRistoratore.isEmpty() ||
         nazione == null || nazione.isEmpty() ||
         citta == null || citta.isEmpty() ||
         indirizzo == null || indirizzo.isEmpty() ||
         tipo_Cucina == null || tipo_Cucina.isEmpty())
         return false;
 
-    if (prezzo <= 0)
-        return false;
-
-    
-    try (BufferedReader reader = new BufferedReader(new FileReader(fileRistorantiPath))) {
-        String linea;
-        while ((linea = reader.readLine()) != null) {
-            String[] campi = linea.split(";", -1);
-            if (campi.length >= 5) {
-                String nomeEsistente = campi[0].trim();
-                String indirizzoEsistente = campi[4].trim();
-                if (nomeEsistente.equalsIgnoreCase(nome.trim()) && indirizzoEsistente.equalsIgnoreCase(indirizzo.trim())) {
-                    System.out.println("Errore: esiste gia un Ristorante con lo stesso nome e indirizzo.");
-                    return false;
-                }
-            }
-        }
-    } catch (IOException e) {
-        System.err.println("Errore nella lettura del file ristoranti: " + e.getMessage());
-        return false;
-    }
-
-    
-    Ristorante nuovoRistorante = new Ristorante(nome, usernameRistoratore, nazione, citta, indirizzo, latitudine,
-            longitudine, prezzo, disponibilita_delivery, disponibilita_prenotazione, tipo_Cucina);
-
-    String riga = Mapper.mapStrRistorante(nuovoRistorante);
-
     try {
-        File file = new File(fileRistorantiPath);
-        boolean addNewline = false;
-
-        if (file.exists() && file.length() > 0) {
-            RandomAccessFile raf = new RandomAccessFile(file, "r");
-            raf.seek(file.length() - 1);
-            int lastByte = raf.read();
-            raf.close();
-            if (lastByte != '\n') {
-                addNewline = true;
-            }
-        }
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-        if (addNewline) writer.newLine();
-        writer.write(riga);
-        writer.newLine();
-        writer.close();
-
-        return true;
-
-    } catch (Exception e) {
+      String sql="INSERT INTO ristoranti_the_knife (\n" +
+              "    nome_ristorante,\n" +
+              "    nazione,\n" +
+              "    citta,\n" +
+              "    indirizzo,\n" +
+              "    latitudine,\n" +
+              "    longitudine,\n" +
+              "    fascia_prezzo,\n" +
+              "    delivery,\n" +
+              "    prenotabile,\n" +
+              "    tipo_cucina,\n" +
+              "    id_utente\n" +
+              ")\n" +
+              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+      int x=db.execute(sql, nome, nazione, citta, indirizzo, latitudine, longitudine, prezzo, disponibilita_delivery, disponibilita_prenotazione, tipo_Cucina, idRistoratore);
+      if(x<=0){return false;}
+      else {return true;}
+    } catch (SQLException e) {
         e.printStackTrace();
         return false;
     }
@@ -145,7 +112,7 @@ public static boolean aggiungiRistorante(String nome, String usernameRistoratore
  *
  * @param usernameRistoratore lo username del ristoratore di cui visualizzare il riepilogo
  */
-    public static void visualizzaRiepilogo(String usernameRistoratore) {
+    public static void visualizzaRiepilogo(int usernameRistoratore) {
     if (fileRistorantiPath == null || fileRecensioniPath == null) {
         System.err.println("Errore: file non configurati.");
         return;
@@ -164,7 +131,7 @@ public static boolean aggiungiRistorante(String nome, String usernameRistoratore
                 String nomeRistorante = campi[0].trim();
                 String proprietario = campi[1].trim();
 
-                if (proprietario.equalsIgnoreCase(usernameRistoratore.trim())) {
+                if (proprietario.equalsIgnoreCase(String.valueOf(usernameRistoratore))) {
                     String citta = campi[3].trim();
                     ristorantiDelRistoratore.put(nomeRistorante, citta);
                 }
@@ -287,7 +254,7 @@ public static void visualizzaRecensioniPerRistorante(String nomeRistorante) {
  *
  * @param usernameLoggato lo username del ristoratore per cui visualizzare le recensioni
  */
-public static void visualizzaRecensioniPerRistoratore(String usernameLoggato) {
+public static void visualizzaRecensioniPerRistoratore(int usernameLoggato) {
 
     if (fileRistorantiPath == null || fileRecensioniPath == null) {
         System.err.println("Errore: i path dei file non sono stati configurati.");
@@ -374,7 +341,7 @@ public static void visualizzaRecensioniPerRistoratore(String usernameLoggato) {
  * @return true se la risposta è stata aggiunta con successo, false in caso di errore, Ristorante non valido,
  *         recensione inesistente o gia risposto
  */
-public static boolean rispondiRecensione(String usernameLoggato, String nomeRistorante, String usernameCliente, String risposta) {
+public static boolean rispondiRecensione(int usernameLoggato, String nomeRistorante, String usernameCliente, String risposta) {
 
     boolean ristoranteTrovato = false;
 
@@ -385,10 +352,7 @@ public static boolean rispondiRecensione(String usernameLoggato, String nomeRist
             if (campi.length >= 2) {
                 String nomeRis = campi[0].trim();
                 String usernameProprietario = campi[1].trim();
-                if (nomeRis.equalsIgnoreCase(nomeRistorante.trim()) && usernameProprietario.equalsIgnoreCase(usernameLoggato.trim())) {
-                    ristoranteTrovato = true;
-                    break;
-                }
+
             }
         }
     } catch (IOException e) {
@@ -793,7 +757,7 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
 
 
         try {
-            String sql = "SELECT password,ruolo FROM utenti WHERE username = ?;";
+            String sql = "SELECT password,ruolo,id_utente FROM utenti WHERE username = ?;";
             List<Map<String, Object>> risultati = db.executeSelect(sql, username);
 
             if (risultati.isEmpty()) {
@@ -806,7 +770,7 @@ public static boolean aggiungiRecensione(String username, String nomeRistorante,
 
 
             if (Criptazione.confronta(password, (String) utente.get("password"))) {
-                return "true,"+utente.get("ruolo");
+                return "true,"+utente.get("ruolo")+","+utente.get("id_utente");
             }
 
             System.out.println("Credenziali non valide.");
@@ -1145,13 +1109,22 @@ public static double[] findCoordinates() {
                 String countryCode = (String) citta.get("country_code");
                 System.out.printf("%d: %s, %s (%s)%n", i + 1, nome, regione, countryCode);
             }
-            int scelta = scanner.nextInt();
-            if (scelta >= 1 && scelta <= risultati.size()) {
-                Map<String, Object> cittaScelta = risultati.get(scelta - 1);
-                lat = (Double) cittaScelta.get("lat");
-                lon = (Double) cittaScelta.get("lon");
-            } else {
-                System.out.println("Scelta non valida. Riprova.");
+            while(true) {
+                try {
+                    int scelta = scanner.nextInt();
+                    if (scelta >= 1 && scelta <= risultati.size()) {
+                        Map<String, Object> cittaScelta = risultati.get(scelta - 1);
+                        lat = (Double) cittaScelta.get("lat");
+                        lon = (Double) cittaScelta.get("lon");
+                        break;
+                    } else {
+                        System.out.println("Scelta non valida. Riprova.");
+                    }
+                }
+                catch(InputMismatchException e) {
+                    System.err.println("inserire un valore valido");
+                    scanner.next();
+                }
             }
         } else {
             while(true) {
