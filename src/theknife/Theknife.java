@@ -8,13 +8,17 @@ package theknife;
 
 
 
-import java.security.DigestInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Scanner;
 import dao.*;
 import sicurezzaPassword.*;
+import javax.swing.*;
+import gui.MainFrame;
+
 /**
  * TheKnife – Applicazione console per la gestione di ristoranti.
  * 
@@ -43,7 +47,11 @@ public class Theknife {
      * @param args argomenti passati da riga di comando (non utilizzati)
      */
     public static void main(String[] args) {
-           boolean running = true;
+            SwingUtilities.invokeLater(() -> new MainFrame());
+
+       /* sto commendo mi serve non cancellatemelo - SS the real g
+        boolean running = true;
+
         while (running) {
             System.out.println("\n--- Benvenuto in TheKnife ---");
             System.out.println("1. Login");
@@ -59,7 +67,7 @@ public class Theknife {
                 case "0" -> running = false;
                 default -> System.out.println("Scelta non valida");
             }
-        }
+        }*/
     }
     /**
      * Gestisce la procedura di login per clienti o ristoratori.
@@ -80,15 +88,13 @@ public class Theknife {
            String success = GestioneTheKnife.login(username, password);
 
 
-        if (success.contains("true,cliente")) {
+        if (success.equals("true,cliente")) {
             System.out.println("Login riuscito con successo!");
-            int id= Integer.parseInt(success.split(",")[2]);
-            menuCliente(username, id);
+            menuCliente(username);
 
-        }else if(success.contains("true,gestore")){
+        }else if(success.equals("true,ristoratore")){
             System.out.println("Login riuscito con successo!");
-            int id= Integer.parseInt(success.split(",")[2]);
-            menuRistoratore(id);
+            menuRistoratore(username);
         }else {
             System.out.println("Login fallito. Username o password errati.");
         }
@@ -129,11 +135,11 @@ public class Theknife {
         }
         System.out.print("Domicilio: ");
         String domicilio = scanner.nextLine().trim();
-        System.out.print("Ruolo (cliente/gestore): ");
+        System.out.print("Ruolo (cliente/ristoratore): ");
         String ruolo = scanner.nextLine().trim().toLowerCase();
 
-        if (domicilio.isEmpty() || (!ruolo.equals("cliente") && !ruolo.equals("gestore"))) {
-            System.out.println("Domicilio obbligatorio e ruolo deve essere 'cliente' o 'gestore'.");
+        if (domicilio.isEmpty() || (!ruolo.equals("cliente") && !ruolo.equals("ristoratore"))) {
+            System.out.println("Domicilio obbligatorio e ruolo deve essere 'cliente' o 'ristoratore'.");
             return;
         }
         String dataNascitaStr=null;
@@ -159,7 +165,7 @@ public class Theknife {
      * @return {@link Calendar} rappresentante la data
      * @throws IllegalArgumentException se il formato della data non è valido
      */
-    private static Calendar parseDataNascita(String inputData) {
+    public static Calendar parseDataNascita(String inputData) {
         if (inputData == null || inputData.trim().isEmpty()) {
             // Data "vuota": impostiamo 1 gennaio anno 0
             return null;
@@ -182,7 +188,7 @@ public class Theknife {
      * 
      * @param username username del cliente autenticato
      */
-    private static void menuCliente(String username, int id) {
+    private static void menuCliente(String username) {
         boolean back = false;
         while (!back) {
             System.out.println("\n--- Menu Cliente ---");
@@ -205,11 +211,11 @@ public class Theknife {
 
                     if (!GestioneTheKnife.esisteRistorante(nome, luogo)) {
                         System.out.println("Errore: il Ristorante indicato non esiste.");
-                    } /*else {
+                    } else {
                         boolean aggiunto = GestioneTheKnife.aggiungiPreferito(username, nome, luogo);
                         if (aggiunto) System.out.println("Ristorante aggiunto ai preferiti.");
                         else System.out.println("Errore nell'aggiunta ai preferiti.");
-                    }*/
+                    }
                 }
                 case "2" -> {
                     System.out.print("Nome Ristorante: ");
@@ -269,9 +275,9 @@ public class Theknife {
     /**
      * Mostra il menu dedicato ai ristoratori e gestisce le relative azioni.
      * 
-     * @param id id del ristoratore autenticato
+     * @param username username del ristoratore autenticato
      */
-    private static void menuRistoratore(int id) {
+    private static void menuRistoratore(String username) {
         boolean back = false;
         while (!back) {
             System.out.println("\n--- Menu Ristoratore ---");
@@ -293,10 +299,9 @@ public class Theknife {
                     String citta = scanner.nextLine();
                     System.out.print("Indirizzo: ");
                     String indirizzo = scanner.nextLine();
-                    double[] coords = GestioneTheKnife.findCoordinates();
-                    int lat = (int) coords[0];
-                    int lon = (int) coords[1];
-                    String prezzo = leggiFasciaPrezzo();
+                    int lat = leggiNumero("Latitudine: ");
+                    int lon = leggiNumero("Longitudine: ");
+                    int prezzo = leggiNumero("Prezzo medio: ");
                     System.out.print("Delivery (true/false): ");
                     boolean delivery = leggiBoolean();
                     System.out.print("Prenotazione online (true/false): ");
@@ -305,7 +310,7 @@ public class Theknife {
                     String cucina = scanner.nextLine();
 
                     boolean aggiunto = GestioneTheKnife.aggiungiRistorante(
-                            nome, id, nazione, citta, indirizzo, lat, lon, prezzo,
+                            nome, username, nazione, citta, indirizzo, lat, lon, prezzo,
                             delivery, prenotazione, cucina
                     );
 
@@ -315,8 +320,8 @@ public class Theknife {
                         System.out.println("Errore nell'aggiunta del Ristorante.");
                     }
                 }
-                case "2" -> GestioneTheKnife.visualizzaRiepilogo(id);
-                case "3" -> GestioneTheKnife.visualizzaRecensioniPerRistoratore(id);
+                case "2" -> GestioneTheKnife.visualizzaRiepilogo(username);
+                case "3" -> GestioneTheKnife.visualizzaRecensioniPerRistoratore(username);
                 case "4" -> {
                     System.out.print("Nome Ristorante: ");
                     String nomeRistorante = scanner.nextLine();
@@ -326,7 +331,7 @@ public class Theknife {
                     String testoRisposta = scanner.nextLine();
 
                     boolean rispostaInserita = GestioneTheKnife.rispondiRecensione(
-                            id, nomeRistorante, usernameCliente, testoRisposta
+                            username, nomeRistorante, usernameCliente, testoRisposta
                     );
 
                     if (rispostaInserita) {
@@ -349,21 +354,23 @@ public class Theknife {
  * Se vengono trovati ristoranti corrispondenti ai criteri, li stampa a schermo.
  */
     private static void cercaRistoranti() {
-        GestioneTheKnife.showRecommended();
         System.out.println("\n--- Ricerca avanzata ristoranti ---");
 
-        double[] coord = new double[2];
-        coord=GestioneTheKnife.findCoordinates();
+        System.out.print("Inserisci zona geografica (obbligatorio): ");
+        String zona = scanner.nextLine().trim();
+        if (zona.isEmpty()) {
+            System.out.println("Zona geografica obbligatoria per la ricerca.");
+            return;
+        }
 
         System.out.print("Tipologia di cucina (facoltativo): ");
         String cucina = scanner.nextLine().trim();
-        if(cucina.isEmpty()){
-            cucina = null;}
-        System.out.print("Prezzo minimo (facoltativo, premi Invio per saltare, se inserito deve essere compreso tra $ e $$$$): ");
-        String prezzoMin = leggiFasciaPrezzo();
 
-        System.out.print("Prezzo massimo (facoltativo, premi Invio per saltare, se inserito deve essere compreso tra $ e $$$$): ");
-        String prezzoMax = leggiFasciaPrezzo();
+        System.out.print("Prezzo minimo (facoltativo, premi Invio per saltare): ");
+        Integer prezzoMin = leggiNumeroFacoltativo();
+
+        System.out.print("Prezzo massimo (facoltativo, premi Invio per saltare): ");
+        Integer prezzoMax = leggiNumeroFacoltativo();
 
         System.out.print("Servizio delivery richiesto? (true/false/Invio per no filtro): ");
         Boolean delivery = leggiBooleanFacoltativo();
@@ -374,13 +381,18 @@ public class Theknife {
         System.out.print("Valutazione media minima (stelle, 1-5, facoltativo): ");
         Double stelleMin = leggiDoubleFacoltativo();
 
-        System.out.println("inserire raggio di ricerca (è in km)");
-        int rad=scanner.nextInt();
+        List<String> risultati = GestioneTheKnife.cercaRistorantiAvanzata(
+                zona, cucina,
+                prezzoMin, prezzoMax,
+                delivery, prenotazione,
+                stelleMin
+        );
 
-        System.out.println(coord[0] + ", " + coord[1] + ", " + cucina + ", " + prezzoMin + ", " + prezzoMax + ", " + delivery + ", " + prenotazione + ", " + stelleMin + ", " + rad);
-        GestioneTheKnife.cercaRistorantiAvanzata(coord[0], coord[1], cucina, prezzoMin, prezzoMax, delivery, prenotazione, stelleMin, rad);
-
-
+        if (risultati.isEmpty()) {
+            System.out.println("Nessun Ristorante trovato con i criteri indicati.");
+        } else {
+            stampaRistoranti(risultati);
+        }
     }
 
 /**
@@ -483,17 +495,6 @@ private static void stampaRistoranti(List<String> ristoranti) {
             System.out.println("Numero non valido, filtro ignorato.");
             return null;
         }
-    }
-    private static String  leggiFasciaPrezzo() {
-        System.out.println("Inserisci la fascia di prezzo, tra $ e $$$$: ");
-        while(true) {
-            String input = scanner.nextLine().trim();
-            if(input.isEmpty()){ System.err.println("inserire un valore!"); continue;}
-        if(input.equals("$")||input.equals("$$")||input.equals("$$$")||input.equals("$$$$")) return input;
-        else System.err.println("il valore inserito deve essere tra $ e $$$$!");}
-
-
-
     }
 
 }
