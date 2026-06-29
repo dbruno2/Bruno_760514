@@ -37,7 +37,7 @@ public class GestioneTheKnife {
     
     // Path dinamici
 
-    PostgresDB db;
+    static PostgresDB db;
 
     public GestioneTheKnife(PostgresDB db) {
         this.db = db;
