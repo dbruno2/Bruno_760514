@@ -122,7 +122,7 @@ public class GuestFrame extends JFrame {
                     ? null
                     : Double.valueOf(txtStelle.getText());
 
-            List<String> risultati = GestioneTheKnife.cercaRistorantiAvanzata(zona, cucina, prezzoMin, prezzoMax, delivery, prenotazione, stelleMin);
+            List<String> risultati = List.of();  //= GestioneTheKnife.cercaRistorantiAvanzata(zona, cucina, prezzoMin, prezzoMax, delivery, prenotazione, stelleMin);
 
             if (risultati.isEmpty()) {
                 JOptionPane.showMessageDialog(this,

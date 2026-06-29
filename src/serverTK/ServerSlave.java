@@ -27,6 +27,7 @@ public class ServerSlave extends Thread {
                     + " - " + e.getClass().getSimpleName() + ": " + e.getMessage());
             e.printStackTrace(System.err);
         }
+        System.out.println("[ServerSlave] connessione stabilita con il client");
     }
 
     public void run() {

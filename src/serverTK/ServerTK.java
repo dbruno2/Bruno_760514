@@ -6,7 +6,7 @@ import dao.PostgresDB;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class serverTK {
+public class ServerTK {
 
     ServerSocket serverSocket;
     GestioneTheKnife gk;
@@ -17,29 +17,30 @@ public class serverTK {
     public static final int DB_PORT = 5432;
     public static final String DB_NAME = "theKnife";
 
-    public serverTK() {
+    public ServerTK() {
         try {
             db = new PostgresDB(DB_HOST, DB_PORT, DB_NAME);
             gk = new GestioneTheKnife(db);
             serverSocket = new ServerSocket(PORTA);
         } catch (Exception e) {
-            System.err.println("[serverTK] Impossibile creare il ServerSocket sulla porta " + PORTA
+            System.err.println("[ServerTK] Impossibile creare il ServerSocket sulla porta " + PORTA
                     + " - " + e.getClass().getSimpleName() + ": " + e.getMessage());
             e.printStackTrace(System.err);
         }
     }
 
     public void exc(){
-        System.out.println("server in esecuzione");
+        System.out.println("[ServerTK] server in esecuzione");
         Socket socket;
         try {
         while(true){
-            System.out.println("server in attesa di connessione");
+            System.out.println("[ServerTK] server in attesa di connessione");
                socket= serverSocket.accept();
+               System.out.println("[ServerTK] connessione accettata");
                new ServerSlave(socket,gk).start();
         }
     } catch (Exception e) {
-        System.err.println("[serverTK] Errore durante l'attesa/accettazione di una connessione client"
+        System.err.println("[ServerTK] Errore durante l'attesa/accettazione di una connessione client"
                 + " - " + e.getClass().getSimpleName() + ": " + e.getMessage());
         e.printStackTrace(System.err);
     }
@@ -49,7 +50,7 @@ public class serverTK {
      */
     public static void main(String[] args) {
 
-        new serverTK().exc();
+        new ServerTK().exc();
 
     }
 }

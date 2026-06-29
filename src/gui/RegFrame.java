@@ -12,7 +12,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.Calendar;
 
-import static theknife.Theknife.parseDataNascita;
+import static dao.GestioneTheKnife.parseDataNascita;
+
 
 public class RegFrame extends JFrame {
 
