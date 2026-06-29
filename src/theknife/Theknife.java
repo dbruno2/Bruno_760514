@@ -80,13 +80,15 @@ public class Theknife {
            String success = GestioneTheKnife.login(username, password);
 
 
-        if (success.equals("true,cliente")) {
+        if (success.contains("true,cliente")) {
             System.out.println("Login riuscito con successo!");
-            menuCliente(username);
+            int id= Integer.parseInt(success.split(",")[2]);
+            menuCliente(username, id);
 
-        }else if(success.equals("true,ristoratore")){
+        }else if(success.contains("true,gestore")){
             System.out.println("Login riuscito con successo!");
-            menuRistoratore(username);
+            int id= Integer.parseInt(success.split(",")[2]);
+            menuRistoratore(id);
         }else {
             System.out.println("Login fallito. Username o password errati.");
         }
@@ -127,11 +129,11 @@ public class Theknife {
         }
         System.out.print("Domicilio: ");
         String domicilio = scanner.nextLine().trim();
-        System.out.print("Ruolo (cliente/ristoratore): ");
+        System.out.print("Ruolo (cliente/gestore): ");
         String ruolo = scanner.nextLine().trim().toLowerCase();
 
-        if (domicilio.isEmpty() || (!ruolo.equals("cliente") && !ruolo.equals("ristoratore"))) {
-            System.out.println("Domicilio obbligatorio e ruolo deve essere 'cliente' o 'ristoratore'.");
+        if (domicilio.isEmpty() || (!ruolo.equals("cliente") && !ruolo.equals("gestore"))) {
+            System.out.println("Domicilio obbligatorio e ruolo deve essere 'cliente' o 'gestore'.");
             return;
         }
         String dataNascitaStr=null;
@@ -180,7 +182,7 @@ public class Theknife {
      * 
      * @param username username del cliente autenticato
      */
-    private static void menuCliente(String username) {
+    private static void menuCliente(String username, int id) {
         boolean back = false;
         while (!back) {
             System.out.println("\n--- Menu Cliente ---");
@@ -267,9 +269,9 @@ public class Theknife {
     /**
      * Mostra il menu dedicato ai ristoratori e gestisce le relative azioni.
      * 
-     * @param username username del ristoratore autenticato
+     * @param id id del ristoratore autenticato
      */
-    private static void menuRistoratore(String username) {
+    private static void menuRistoratore(int id) {
         boolean back = false;
         while (!back) {
             System.out.println("\n--- Menu Ristoratore ---");
@@ -291,9 +293,10 @@ public class Theknife {
                     String citta = scanner.nextLine();
                     System.out.print("Indirizzo: ");
                     String indirizzo = scanner.nextLine();
-                    int lat = leggiNumero("Latitudine: ");
-                    int lon = leggiNumero("Longitudine: ");
-                    int prezzo = leggiNumero("Prezzo medio: ");
+                    double[] coords = GestioneTheKnife.findCoordinates();
+                    int lat = (int) coords[0];
+                    int lon = (int) coords[1];
+                    String prezzo = leggiFasciaPrezzo();
                     System.out.print("Delivery (true/false): ");
                     boolean delivery = leggiBoolean();
                     System.out.print("Prenotazione online (true/false): ");
@@ -302,7 +305,7 @@ public class Theknife {
                     String cucina = scanner.nextLine();
 
                     boolean aggiunto = GestioneTheKnife.aggiungiRistorante(
-                            nome, username, nazione, citta, indirizzo, lat, lon, prezzo,
+                            nome, id, nazione, citta, indirizzo, lat, lon, prezzo,
                             delivery, prenotazione, cucina
                     );
 
@@ -312,8 +315,8 @@ public class Theknife {
                         System.out.println("Errore nell'aggiunta del Ristorante.");
                     }
                 }
-                case "2" -> GestioneTheKnife.visualizzaRiepilogo(username);
-                case "3" -> GestioneTheKnife.visualizzaRecensioniPerRistoratore(username);
+                case "2" -> GestioneTheKnife.visualizzaRiepilogo(id);
+                case "3" -> GestioneTheKnife.visualizzaRecensioniPerRistoratore(id);
                 case "4" -> {
                     System.out.print("Nome Ristorante: ");
                     String nomeRistorante = scanner.nextLine();
@@ -323,7 +326,7 @@ public class Theknife {
                     String testoRisposta = scanner.nextLine();
 
                     boolean rispostaInserita = GestioneTheKnife.rispondiRecensione(
-                            username, nomeRistorante, usernameCliente, testoRisposta
+                            id, nomeRistorante, usernameCliente, testoRisposta
                     );
 
                     if (rispostaInserita) {
@@ -481,9 +484,10 @@ private static void stampaRistoranti(List<String> ristoranti) {
         }
     }
     private static String  leggiFasciaPrezzo() {
+        System.out.println("Inserisci la fascia di prezzo, tra $ e $$$$: ");
         while(true) {
             String input = scanner.nextLine().trim();
-            if(input.isEmpty()){ return null;}
+            if(input.isEmpty()){ System.err.println("inserire un valore!"); continue;}
         if(input.equals("$")||input.equals("$$")||input.equals("$$$")||input.equals("$$$$")) return input;
         else System.err.println("il valore inserito deve essere tra $ e $$$$!");}
 
