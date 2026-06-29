@@ -11,6 +11,7 @@ public class serverTK {
     ServerSocket serverSocket;
     GestioneTheKnife gk;
     public static final int PORTA = 4444;
+    PostgresDB db;
 
     public static final String DB_HOST = "localhost";
     public static final int DB_PORT = 5432;
@@ -18,7 +19,7 @@ public class serverTK {
 
     public serverTK() {
         try {
-            PostgresDB db = new PostgresDB(DB_HOST, DB_PORT, DB_NAME);
+            db = new PostgresDB(DB_HOST, DB_PORT, DB_NAME);
             gk = new GestioneTheKnife(db);
             serverSocket = new ServerSocket(PORTA);
         } catch (Exception e) {
@@ -35,7 +36,7 @@ public class serverTK {
         while(true){
             System.out.println("server in attesa di connessione");
                socket= serverSocket.accept();
-               new ServerSlave(socket,gk);
+               new ServerSlave(socket,gk).start();
         }
     } catch (Exception e) {
         System.err.println("[serverTK] Errore durante l'attesa/accettazione di una connessione client"

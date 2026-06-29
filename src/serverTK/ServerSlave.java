@@ -1,6 +1,7 @@
 package serverTK;
 
 import dao.GestioneTheKnife;
+import dao.PostgresDB;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -16,6 +17,7 @@ public class ServerSlave extends Thread {
     public ServerSlave(Socket socket, GestioneTheKnife gk) {
         this.socket = socket;
         this.gk = gk;
+
         try {
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());

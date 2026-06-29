@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.nio.file.Paths;
 import java.util.*;
 
-import dto.Ristorante;
 import mapper.Mapper;
 import sicurezzaPassword.Criptazione;
 
