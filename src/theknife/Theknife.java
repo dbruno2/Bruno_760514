@@ -8,7 +8,7 @@ package theknife;
 
 
 
-import java.security.DigestInputStream;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -193,46 +193,37 @@ public class Theknife {
             System.out.println("5. Cerca Ristorante");
             System.out.println("6. Modifica recensione");
             System.out.println("7. Elimina recensione");
+            System.out.println("8. Visualizza recensioni");
             System.out.println("0. Logout");
             System.out.print("Scelta: ");
 
             switch (scanner.nextLine()) {
                 case "1" -> {
-                    System.out.print("Nome Ristorante: ");
-                    String nome = scanner.nextLine().trim();
-                    System.out.print("Luogo: ");
-                    String luogo = scanner.nextLine().trim();
-
-                    if (!GestioneTheKnife.esisteRistorante(nome, luogo)) {
-                        System.out.println("Errore: il Ristorante indicato non esiste.");
-                    } /*else {
-                        boolean aggiunto = GestioneTheKnife.aggiungiPreferito(username, nome, luogo);
-                        if (aggiunto) System.out.println("Ristorante aggiunto ai preferiti.");
-                        else System.out.println("Errore nell'aggiunta ai preferiti.");
-                    }*/
+                    // Ora usiamo gli ID: chiediamo l'id del ristorante e aggiungiamo ai preferiti
+                    int idRistoranteAggiungi = leggiNumero("ID Ristorante da aggiungere ai preferiti: ");
+                    boolean aggiunto = GestioneTheKnife.aggiungiPreferito(id, idRistoranteAggiungi);
+                    if (aggiunto) System.out.println("Ristorante aggiunto ai preferiti.");
+                    else System.out.println("Errore nell'aggiunta ai preferiti.");
                 }
                 case "2" -> {
-                    System.out.print("Nome Ristorante: ");
-                    String nome = scanner.nextLine();
-                    System.out.print("Luogo: ");
-                    String luogo = scanner.nextLine();
-                    boolean rimosso = GestioneTheKnife.rimuoviPreferito(username, nome, luogo);
+                    List<Map<String, Object>> risultati =GestioneTheKnife.visualizzaPreferiti(id);
+                    if(risultati.isEmpty()){
+
+                        break;
+                    }
+                    int idRistoranteRimuovi = leggiNumero("ID Ristorante da rimuovere dai preferiti: ");
+                    boolean rimosso = GestioneTheKnife.rimuoviPreferito(id, idRistoranteRimuovi);
                     if (rimosso) System.out.println("Ristorante rimosso dai preferiti.");
                     else System.out.println("Errore nella rimozione dai preferiti.");
                 }
-                case "3" -> GestioneTheKnife.visualizzaPreferiti(username);
+                case "3" -> GestioneTheKnife.visualizzaPreferiti(id);
                 case "4" -> {
-                    System.out.print("Nome Ristorante: ");
-                    String nome = scanner.nextLine();
-                    System.out.print("Luogo Ristorante: ");
-                    String luogo = scanner.nextLine();
+                    int idRistoranteRec = leggiNumero("ID Ristorante su cui lasciare la recensione: ");
                     int voto = leggiNumero("Voto (1-5): ");
                     System.out.print("Testo recensione: ");
                     String testo = scanner.nextLine();
 
-                    boolean recensioneAggiunta = GestioneTheKnife.aggiungiRecensione(
-                            username, nome, luogo, String.valueOf(voto), testo
-                    );
+                    boolean recensioneAggiunta = GestioneTheKnife.aggiungiRecensione(testo, voto, id, idRistoranteRec);
                     if (recensioneAggiunta) {
                         System.out.println("Recensione aggiunta con successo.");
                     } else {
@@ -241,24 +232,20 @@ public class Theknife {
                 }
                 case "5" -> cercaRistoranti();
                 case "6" -> {
-                    System.out.println("inserisci il nome del Ristorante della recensione che vuoi modificare:");
-                    String nomeRis = scanner.nextLine();
-                    System.out.println("inserisci il luogo del Ristorante della recensione che vuoi modificare:");
-                    String luogoRis = scanner.nextLine();
-                    System.out.println("inserisci il nuovo voto");
-                    int nuovoVoto = scanner.nextInt();
-                    scanner.nextLine();
-                    System.out.println("inserisci la nuova recensione");
+                    int idRecToMod = leggiNumero("ID recensione da modificare: ");
+                    int nuovoVoto = leggiNumero("Inserisci il nuovo voto (1-5): ");
+                    System.out.println("Inserisci il nuovo testo della recensione:");
                     String nuovaRec = scanner.nextLine();
-                    GestioneTheKnife.modificaRecensione(username, nomeRis, luogoRis, nuovoVoto, nuovaRec);
+                    GestioneTheKnife.modificaRecensione(idRecToMod, id, nuovaRec, nuovoVoto);
                 }
                 case "7"->{ 
-                    System.out.println("inserisci il nome del Ristorante della recensione che vuoi eliminare:");
-                    String nomeRis = scanner.nextLine();
-                    System.out.println("inserisci il luogo del Ristorante della recensione che vuoi eliminare:");
-                    String luogoRis = scanner.nextLine();
-                    GestioneTheKnife.eliminaRecensione(username, nomeRis, luogoRis);
+                    int idRecToDel = leggiNumero("ID recensione da eliminare: ");
+                    GestioneTheKnife.eliminaRecensione(idRecToDel, id);
 
+                }
+                case "8" -> {
+                    int idRistorante = leggiNumero("ID Ristorante per cui visualizzare le recensioni: ");
+                    GestioneTheKnife.visualizzaRecensioniPerRistorante(idRistorante);
                 }
                 case "0" -> back = true;
                 default -> System.out.println("Scelta non valida");
@@ -279,7 +266,6 @@ public class Theknife {
             System.out.println("2. Visualizza riepilogo recensioni");
             System.out.println("3. Visualizza recensioni");
             System.out.println("4. Rispondi a recensione");
-            System.out.println("5. Cerca Ristorante");
             System.out.println("0. Logout");
             System.out.print("Scelta: ");
 
@@ -316,18 +302,18 @@ public class Theknife {
                     }
                 }
                 case "2" -> GestioneTheKnife.visualizzaRiepilogo(id);
-                case "3" -> GestioneTheKnife.visualizzaRecensioniPerRistoratore(id);
+                case "3" -> {
+                    // Chiediamo l'ID del ristorante di cui visualizzare le recensioni
+                    int idRistorantePerRec = leggiNumero("ID Ristorante di cui visualizzare le recensioni: ");
+                    GestioneTheKnife.visualizzaRecensioniPerRistorante(idRistorantePerRec);
+                }
                 case "4" -> {
-                    System.out.print("Nome Ristorante: ");
-                    String nomeRistorante = scanner.nextLine();
-                    System.out.print("Username cliente a cui rispondere: ");
-                    String usernameCliente = scanner.nextLine();
+                    // Per rispondere chiediamo l'ID della recensione
+                    int idRecensione = leggiNumero("ID recensione a cui rispondere: ");
                     System.out.print("Testo risposta: ");
                     String testoRisposta = scanner.nextLine();
 
-                    boolean rispostaInserita = GestioneTheKnife.rispondiRecensione(
-                            id, nomeRistorante, usernameCliente, testoRisposta
-                    );
+                    boolean rispostaInserita = GestioneTheKnife.rispondiRecensione(idRecensione, id, testoRisposta);
 
                     if (rispostaInserita) {
                         System.out.println("Risposta inserita con successo.");
@@ -335,7 +321,6 @@ public class Theknife {
                         System.out.println("Errore nell'inserimento della risposta o dati non corretti.");
                     }
                 }
-                case "5" -> cercaRistoranti();
                 case "0" -> back = true;
                 default -> System.out.println("Scelta non valida");
             }
@@ -389,20 +374,33 @@ public class Theknife {
  *
  * @param ristoranti La lista di descrizioni testuali dei ristoranti da stampare.
  */  
-private static void stampaRistoranti(List<String> ristoranti) {
+private static void stampaRistoranti(List<Map<String, Object>> ristoranti) {
     System.out.println("\n--- Ristoranti trovati ---");
-    for (String r : ristoranti) {
+    for (Map<String, Object> r : ristoranti) {
         System.out.println("------------------------------");
-        System.out.println(r);
+        System.out.println("Nome: " + r.get("nome_ristorante"));
+        System.out.println("Città: " + r.get("citta"));
+        System.out.println("Fascia prezzo: " + r.get("fascia_prezzo"));
+        System.out.println("Tipo cucina: " + r.get("tipo_cucina"));
         System.out.println("------------------------------");
 
-        String[] righe = r.split("\n");
-        String primaRiga = righe[0];
-        String nomeRistorante = primaRiga.split(",")[0].split("-")[0].trim();
+        // Recupera l'id in modo sicuro (può essere Integer, Long, ecc.)
+        Object idObj = r.get("id_ristorante");
+        int idRistorante = 0;
+        if (idObj instanceof Number) {
+            idRistorante = ((Number) idObj).intValue();
+        } else if (idObj != null) {
+            try {
+                idRistorante = Integer.parseInt(idObj.toString());
+            } catch (NumberFormatException ignored) {}
+        }
 
         System.out.println();
-
-        GestioneTheKnife.visualizzaRecensioniPerRistorante(nomeRistorante);
+        if (idRistorante > 0) {
+            GestioneTheKnife.visualizzaRecensioniPerRistorante(idRistorante);
+        } else {
+            System.out.println("ID ristorante non disponibile, impossibile mostrare le recensioni.");
+        }
 
         System.out.println();
     }
@@ -485,10 +483,10 @@ private static void stampaRistoranti(List<String> ristoranti) {
         }
     }
     private static String  leggiFasciaPrezzo() {
-        System.out.println("Inserisci la fascia di prezzo, tra $ e $$$$: ");
+        System.out.println("Inserisci la fascia di prezzo, tra $ e $$$$, altrimenti premere invio per saltare il criterio: ");
         while(true) {
             String input = scanner.nextLine().trim();
-            if(input.isEmpty()){ System.err.println("inserire un valore!"); continue;}
+            if(input.isEmpty()){ return null; }
         if(input.equals("$")||input.equals("$$")||input.equals("$$$")||input.equals("$$$$")) return input;
         else System.err.println("il valore inserito deve essere tra $ e $$$$!");}
 
