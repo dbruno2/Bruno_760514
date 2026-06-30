@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp/tk-compile)",
+      "Bash(javac -d /tmp/tk-compile -sourcepath src src/dto/Richiesta.java src/dto/Risposta.java src/dto/TipoOperazione.java src/theknife/ConnectionManager.java src/theknife/ServerListener.java)",
+      "Bash(where javac.exe)",
+      "Read(//c/Program Files/Java/**)",
+      "Read(//c/Program Files/Common Files/Oracle/Java/**)",
+      "Bash(\"/c/Program Files/Java/jdk-21/bin/javac.exe\" -d /tmp/tk-compile -sourcepath src src/dto/Richiesta.java src/dto/Risposta.java src/dto/TipoOperazione.java src/theknife/ConnectionManager.java src/theknife/ServerListener.java)",
+      "Bash(cmd.exe //c \"where javac\")",
+      "Bash(ls /c/ 2>/dev/null | head && echo \"---\" && ls \"C:/Program Files/Java\" 2>/dev/null)",
+      "Bash(rm \"C:\\\\Users\\\\david\\\\OneDrive\\\\Desktop\\\\Bruno_760514\\\\src\\\\theknife\\\\ConnectionManager.java\" \"C:\\\\Users\\\\david\\\\OneDrive\\\\Desktop\\\\Bruno_760514\\\\src\\\\theknife\\\\ServerListener.java\")"
+    ]
+  }
+}

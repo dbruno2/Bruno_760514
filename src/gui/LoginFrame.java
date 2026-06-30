@@ -1,6 +1,9 @@
 package gui;
 
-import dao.GestioneTheKnife;
+import dto.Richiesta;
+import dto.Risposta;
+import dto.TipoOperazione;
+import theknife.ClientTK;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -11,8 +14,14 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
 public class LoginFrame extends JFrame {
+    private final ClientTK client;
 
     public LoginFrame() {
+        this(null);
+    }
+
+    public LoginFrame(ClientTK client) {
+        this.client = client;
 
         setTitle("Login");
         setSize(800, 600);
@@ -37,7 +46,7 @@ public class LoginFrame extends JFrame {
 
         // azioni pulsanti
         indietro.addActionListener(e -> {
-            new MainFrame();
+            new MainFrame(client);
             dispose();
         });
 
@@ -45,13 +54,46 @@ public class LoginFrame extends JFrame {
             String username = txtUsername.getText();
             String password = new String(txtPassword.getPassword());
 
-            String risultato = GestioneTheKnife.login(username, password);
+            if (client == null) {
+                JOptionPane.showMessageDialog(this, "Connessione al server non disponibile");
+                return;
+            }
 
-            if (risultato.equals("true,cliente")) {
-                new ClienteFrame();
+            String risultato;
+            try {
+                Risposta risposta = client.inviaRichiesta(
+                        new Richiesta(TipoOperazione.LOGIN, username, password)
+                );
+                if (risposta != null) {
+                    if (risposta.getMessaggio() != null) {
+                        risultato = risposta.getMessaggio();
+                    } else if (risposta.getArgomenti() != null && risposta.getArgomenti().length > 0) {
+                        risultato = String.valueOf(risposta.getArgomenti()[0]);
+                    } else {
+                        risultato = "false";
+                    }
+                } else {
+                    risultato = "false";
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Errore di comunicazione con il server");
+                ex.printStackTrace();
+                return;
+            }
+
+            String esito = risultato;
+            if (risultato != null && risultato.startsWith("true,")) {
+                String[] parti = risultato.split(",");
+                if (parti.length >= 2) {
+                    esito = parti[0] + "," + parti[1];
+                }
+            }
+
+            if (esito.equals("true,cliente")) {
+                new ClienteFrame(client);
                 dispose();
-            } else if (risultato.equals("true,ristoratore")) {
-                new RistoratoreFrame();
+            } else if (esito.equals("true,ristoratore")) {
+                new RistoratoreFrame(client);
                 dispose();
             }
 

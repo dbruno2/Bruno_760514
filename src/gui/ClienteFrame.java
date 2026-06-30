@@ -1,5 +1,7 @@
 package gui;
 
+import theknife.ClientTK;
+
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -8,8 +10,14 @@ import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 public class ClienteFrame extends JFrame {
+    private final ClientTK client;
 
     public ClienteFrame() {
+        this(null);
+    }
+
+    public ClienteFrame(ClientTK client) {
+        this.client = client;
         setTitle("ClienteFrame");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -46,7 +54,7 @@ public class ClienteFrame extends JFrame {
         // funzionamento bottoni
 
         indietro.addActionListener(e -> {
-            new LoginFrame();
+            new LoginFrame(client);
             dispose();
         });
 

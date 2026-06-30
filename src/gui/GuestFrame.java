@@ -1,7 +1,6 @@
 package gui;
 
-import com.sun.tools.javac.Main;
-import dao.GestioneTheKnife;
+import theknife.ClientTK;
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -12,8 +11,14 @@ import java.awt.GridLayout;
 import java.util.List;
 
 public class GuestFrame extends JFrame {
+    private final ClientTK client;
 
     public GuestFrame() {
+        this(null);
+    }
+
+    public GuestFrame(ClientTK client) {
+        this.client = client;
         setTitle("GuestFrame");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,10 +49,10 @@ public class GuestFrame extends JFrame {
         JTextField txtPrezzoMax = new JTextField();
 
         // delivery
-        JComboBox<String> cmbDelivery = new JComboBox<>(new String[]{" ","true", "false"});
+        JComboBox<String> cmbDelivery = new JComboBox<>(new String[]{"Nessun filtro", "true", "false"});
 
         // prenotazione online
-        JComboBox<String> cmbOnline = new JComboBox<>(new String[]{" ","true", "false"});
+        JComboBox<String> cmbOnline = new JComboBox<>(new String[]{"Nessun filtro", "true", "false"});
 
         //valutazione media
         JLabel lblStelle = new JLabel("Valutazione media 1...5 (facoltativo):");
@@ -86,7 +91,7 @@ public class GuestFrame extends JFrame {
         // funzionamento bottoni
 
         indietro.addActionListener(e -> {
-            new MainFrame();
+            new MainFrame(client);
             dispose();
         });
 
@@ -132,7 +137,7 @@ public class GuestFrame extends JFrame {
                     JOptionPane.showMessageDialog(this,
                             "Nessun ristorante trovato.");
                 } else {
-                    new RisultatiRicercaFrame(risultati);
+                    new RisultatiRicercaFrame(risultati, client);
                     dispose();
                 }
             }

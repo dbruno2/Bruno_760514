@@ -1,13 +1,31 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
+import theknife.ClientTK;
 
-public class RistoratoreFrame {
+import javax.swing.*;
 
+public class RistoratoreFrame extends JFrame {
+    private final ClientTK client;
+
+    public RistoratoreFrame() {
+        this(null);
+    }
+
+    public RistoratoreFrame(ClientTK client) {
+        this.client = client;
+        setTitle("RistoratoreFrame");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JButton indietro = new JButton("Indietro");
+        indietro.addActionListener(e -> {
+            new LoginFrame(client);
+            dispose();
+        });
+
+        add(indietro);
+        setVisible(true);
+    }
 
 }

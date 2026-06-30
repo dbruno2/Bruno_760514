@@ -2,6 +2,10 @@ package gui;
 
 import dao.GestioneTheKnife;
 import sicurezzaPassword.Criptazione;
+import dto.Richiesta;
+import dto.Risposta;
+import dto.TipoOperazione;
+import theknife.ClientTK;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -16,8 +20,14 @@ import static dao.GestioneTheKnife.parseDataNascita;
 
 
 public class RegFrame extends JFrame {
+    private final ClientTK client;
 
     public RegFrame() {
+        this(null);
+    }
+
+    public RegFrame(ClientTK client) {
+        this.client = client;
 
         setTitle("Registrazione");
         setSize(800, 600);
@@ -65,7 +75,7 @@ public class RegFrame extends JFrame {
 
         // azioni pulsanti
         indietro.addActionListener(e -> {
-            new MainFrame();
+            new MainFrame(client);
             dispose();
         });
 
@@ -93,13 +103,28 @@ public class RegFrame extends JFrame {
 
             password = Criptazione.critta(password);
 
-            boolean registrato = GestioneTheKnife.registraUtente(nome, cognome, username, password, dataNascita, domicilio, ruolo, "");
+            boolean registrato;
+            if (client != null) {
+                try {
+                    Risposta risposta = client.inviaRichiesta(new Richiesta(
+                            TipoOperazione.REGISTRA_UTENTE,
+                            nome, cognome, username, password, dataNascita, domicilio, ruolo, ""
+                    ));
+                    registrato = risposta != null && risposta.isConfermaSuccesso();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Errore di comunicazione con il server");
+                    ex.printStackTrace();
+                    return;
+                }
+            } else {
+                registrato = GestioneTheKnife.registraUtente(nome, cognome, username, password, dataNascita, domicilio, ruolo, "");
+            }
 
             if(registrato){
                 JOptionPane.showMessageDialog(this,
                         "Registrazione completata!");
 
-                new MainFrame();
+                new MainFrame(client);
                 dispose();
             }else{
                 JOptionPane.showMessageDialog(this,

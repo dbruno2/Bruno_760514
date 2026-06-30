@@ -11,15 +11,16 @@ public class ServerTK {
     ServerSocket serverSocket;
     GestioneTheKnife gk;
     public static final int PORTA = 4444;
-    PostgresDB db;
+    static PostgresDB db;
 
-    public static final String DB_HOST = "localhost";
-    public static final int DB_PORT = 5432;
-    public static final String DB_NAME = "theKnife";
+    static String url = "jdbc:postgresql://localhost:5432/theKnife";
+    static String user = "postgres";
+    static String pass =  "qwerty";
+
 
     public ServerTK() {
         try {
-            db = new PostgresDB(DB_HOST, DB_PORT, DB_NAME);
+            PostgresDB db = new PostgresDB(url, user, pass);
             gk = new GestioneTheKnife(db);
             serverSocket = new ServerSocket(PORTA);
         } catch (Exception e) {

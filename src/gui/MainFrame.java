@@ -1,5 +1,7 @@
 package gui;
 
+import theknife.ClientTK;
+
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -10,7 +12,14 @@ import java.awt.GridLayout;
 
 
 public class MainFrame extends JFrame {
-    public MainFrame(){
+    private final ClientTK client;
+
+    public MainFrame() {
+        this(null);
+    }
+
+    public MainFrame(ClientTK client){
+        this.client = client;
         setTitle("TheKnife");
         setSize(800,600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -27,19 +36,19 @@ public class MainFrame extends JFrame {
 
         JButton login = new JButton("Login");
         login.addActionListener(e -> {
-            new LoginFrame();
+            new LoginFrame(client);
             dispose();
         });
 
         JButton reg = new JButton("Registrati");
         reg.addActionListener(e -> {
-            new RegFrame();
+            new RegFrame(client);
             dispose();
         });
 
         JButton cercaRis = new JButton("Ricerca Ristorante - guest");
         cercaRis.addActionListener(e -> {
-            new GuestFrame();
+            new GuestFrame(client);
             dispose();
         });
 

@@ -13,16 +13,18 @@ import java.util.Map;
 public class PostgresDB {
 
     private final String url;
+    private final String user;
+    private final String password;
     /**
-     * costruttore oggetto: costruisce l'URL JDBC a partire da host, porta e nome del database.
-     * Nessun utente / password: la connessione si appoggia all'autenticazione configurata
-     * lato PostgreSQL (in <code>pg_hba.conf</code>, tipicamente <code>trust</code> su localhost).
-     * @param host indirizzo del server PostgreSQL (es. "localhost")
-     * @param port porta TCP del server PostgreSQL (es. 5432)
-     * @param database nome del database a cui connettersi (es. "theKnife")
+     * costruttore oggetto, valori in input:
+     * @param url indirizzo del database, ad esempio "jdbc:postgresql://localhost:5432/theKnife"
+     * @param user nome utente per l'accesso al database
+     * @param password password per l'accesso al database
      */
-    public PostgresDB(String host, int port, String database) {
-        this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+    public PostgresDB(String url, String user, String password) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
     }
     /**
      * metodo che restituisce una connessione al database, senza credenziali esplicite
@@ -30,7 +32,7 @@ public class PostgresDB {
      * @return connessione al db
      * */
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url);
+        return DriverManager.getConnection(url, user, password);
     }
 
  /**

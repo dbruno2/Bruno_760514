@@ -3,7 +3,21 @@ package dto;
 import java.io.Serializable;
 
 public class Richiesta implements Serializable {
-    TipoOperazione comando;
-    Object[] argomenti;
 
+
+    private final TipoOperazione comando;
+    private final Object[] argomenti;
+
+    public Richiesta(TipoOperazione comando, Object... argomenti) {
+        this.comando = comando;
+        this.argomenti = argomenti;
+    }
+
+    public TipoOperazione getComando() {
+        return comando;
+    }
+
+    public Object[] getArgomenti() {
+        return argomenti;
+    }
 }

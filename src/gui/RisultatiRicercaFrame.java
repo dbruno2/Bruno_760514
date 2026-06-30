@@ -1,14 +1,20 @@
 package gui;
 
-import com.sun.tools.javac.Main;
-import dao.GestioneTheKnife;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import theknife.ClientTK;
 
 
 public class RisultatiRicercaFrame extends JFrame {
-    RisultatiRicercaFrame(List<String> risultati){
+    private final ClientTK client;
+
+    RisultatiRicercaFrame(List<String> risultati) {
+        this(risultati, null);
+    }
+
+    RisultatiRicercaFrame(List<String> risultati, ClientTK client){
+        this.client = client;
         setTitle("RisultatiRicercaFrame");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -55,7 +61,7 @@ public class RisultatiRicercaFrame extends JFrame {
 
         // funzionamento tasti
         indietro.addActionListener(e -> {
-            new MainFrame();
+            new MainFrame(client);
             dispose();
         });
 
