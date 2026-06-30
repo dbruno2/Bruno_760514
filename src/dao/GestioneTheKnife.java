@@ -529,27 +529,33 @@ public static boolean aggiungiRecensione(String testo, int valutazione, int idUt
 public static List<Map<String, Object>> showRecommended(){
         System.out.println("inserire località dalla quale si sta eseguendo theKnife");
         double[] coords= findCoordinates();
-        String sql="SELECT t.*,\n" +
-                "       COALESCE(t.valutazione_media, 0) AS valutazione_media\n" +
-                "FROM (\n" +
-                "    SELECT r.*,\n" +
-                "           (\n" +
-                "               6371 * 2 * ACOS(\n" +
-                "                   COS(RADIANS(?)) *\n" +
-                "                   COS(RADIANS(r.latitudine)) *\n" +
-                "                   COS(RADIANS(r.longitudine) - RADIANS(?)) +\n" +
-                "                   SIN(RADIANS(?)) *\n" +
-                "                   SIN(RADIANS(r.latitudine))\n" +
-                "               )\n" +
-                "           ) AS distanza_km,\n" +
-                "           COALESCE(AVG(rec.valutazione), 0) AS valutazione_media\n" +
-                "    FROM ristoranti_the_knife r\n" +
-                "    LEFT JOIN recensione rec\n" +
-                "        ON rec.id_ristorante = r.id_ristorante\n" +
-                "    GROUP BY r.id_ristorante\n" +
-                ") t\n" +
-                "WHERE t.distanza_km <= ?\n" +
-                "ORDER BY t.distanza_km;";
+    String sql = "SELECT t.*,\n" +
+            "       t.nome_citta,\n" +
+            "       t.nazione,\n" +
+            "       COALESCE(t.valutazione_media, 0) AS valutazione_media\n" +
+            "FROM (\n" +
+            "    SELECT r.*,\n" +
+            "           dc.nome AS nome_citta,\n" +
+            "           dc.country_code AS nazione,\n" +
+            "           (\n" +
+            "               6371 * 2 * ACOS(\n" +
+            "                   COS(RADIANS(?)) *\n" +
+            "                   COS(RADIANS(dc.lat)) *\n" +
+            "                   COS(RADIANS(dc.lon) - RADIANS(?)) +\n" +
+            "                   SIN(RADIANS(?)) *\n" +
+            "                   SIN(RADIANS(dc.lat))\n" +
+            "               )\n" +
+            "           ) AS distanza_km,\n" +
+            "           COALESCE(AVG(rec.valutazione), 0) AS valutazione_media\n" +
+            "    FROM ristoranti_the_knife r\n" +
+            "    JOIN citta dc \n" +
+            "        ON r.id_citta = dc.id\n" +
+            "    LEFT JOIN recensione rec\n" +
+            "        ON rec.id_ristorante = r.id_ristorante\n" +
+            "    GROUP BY r.id_ristorante, dc.nome, dc.country_code, dc.lat, dc.lon\n" +
+            ") t\n" +
+            "WHERE t.distanza_km <= ?\n" +
+            "ORDER BY t.distanza_km;";
     List<Map<String, Object>> risultati=null ;
     try {
         risultati=db.executeSelect(sql,coords[0],coords[1],coords[0],10);
@@ -559,7 +565,7 @@ public static List<Map<String, Object>> showRecommended(){
             for (Map<String, Object> ristorante : risultati) {
                 System.out.println("Nome: " + ristorante.get("nome_ristorante"));
                 System.out.println("paese: " + ristorante.get("nazione"));
-                System.out.println("citta: " + ristorante.get("citta"));
+                System.out.println("citta: " + ristorante.get("nome_citta"));
                 System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
                 float media = ((Number) ristorante.get("valutazione_media")).floatValue();
                 System.out.println("Media voti: " + String.format("%.2f", media));
@@ -599,16 +605,18 @@ public static List<Map<String, Object>> showRecommended(){
     Double stelleMin,
     int rad
 ) {
-        String sql="SELECT r.*\n" +
+        String sql = "SELECT r.*,\n" +
+                "       r.nome_citta \n" +
                 "FROM (\n" +
                 "    SELECT r_inner.*,\n" +
-                "           -- Calcolo di Haversine fatto UNA Sola volta\n" +
-                "           (6371 * 2 * ASIN(SQRT(POWER(SIN(RADIANS(r_inner.latitudine - ?) / 2), 2) + COS(RADIANS(?)) * COS(RADIANS(r_inner.latitudine)) * POWER(SIN(RADIANS(r_inner.longitudine - ?) / 2), 2)))) AS distanza_km,\n" +
-                "           -- Calcolo della media delle recensioni\n" +
+                "           dc.nome AS nome_citta,\n" +
+                "           dc.country_code AS nazione,\n" +
+                "           (6371 * 2 * ASIN(SQRT(POWER(SIN(RADIANS(dc.lat - ?) / 2), 2) + COS(RADIANS(?)) * COS(RADIANS(dc.lat)) * POWER(SIN(RADIANS(dc.lon - ?) / 2), 2)))) AS distanza_km,\n" +
                 "           COALESCE(AVG(rec.valutazione), 0) AS media_valutazione\n" +
                 "    FROM ristoranti_the_knife r_inner\n" +
+                "    JOIN citta dc ON r_inner.id_citta = dc.id\n" +
                 "    LEFT JOIN recensione rec ON r_inner.id_ristorante = rec.id_ristorante\n" +
-                "    GROUP BY r_inner.id_ristorante -- Raggruppiamo subito qui dentro\n" +
+                "    GROUP BY r_inner.id_ristorante, dc.nome, dc.country_code, dc.lat, dc.lon -- Includiamo i nuovi campi nel GROUP BY\n" +
                 ") r\n" +
                 "WHERE r.distanza_km <= ?\n" +
                 "  AND LOWER(r.tipo_cucina) = LOWER(COALESCE(?, r.tipo_cucina))\n" +
@@ -616,7 +624,7 @@ public static List<Map<String, Object>> showRecommended(){
                 "  AND LENGTH(r.fascia_prezzo) <= COALESCE(LENGTH(?), 4)\n" +
                 "  AND r.delivery = COALESCE(?, r.delivery)\n" +
                 "  AND r.prenotabile = COALESCE(?, r.prenotabile)\n" +
-                "  AND r.media_valutazione >= COALESCE(?, 0) -- Ora puoi usarla nel WHERE senza problemi!\n" +
+                "  AND r.media_valutazione >= COALESCE(?, 0)\n" +
                 "ORDER BY r.distanza_km ASC;";
         List<Map<String, Object>> risultati = null;
         try {
@@ -629,9 +637,8 @@ public static List<Map<String, Object>> showRecommended(){
 
                         float media = ((Number) ristorante.get("media_valutazione")).floatValue();
                         System.out.println("Media voti: " + String.format("%.2f", media));
-
                     System.out.println("paese: " + ristorante.get("nazione"));
-                    System.out.println("citta: " + ristorante.get("citta"));
+                    System.out.println("citta: " + ristorante.get("nome_citta"));
                     System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
                     System.out.println("Fascia di prezzo: " + ristorante.get("fascia_prezzo"));
                     System.out.println("Delivery: " + (Boolean.TRUE.equals(ristorante.get("delivery")) ? "Si" : "No"));
