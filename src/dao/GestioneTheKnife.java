@@ -14,6 +14,7 @@ package dao;
  */
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.nio.file.Paths;
 import java.util.*;
@@ -131,11 +132,11 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
  */
     public static List<Map<String, Object>> visualizzaRiepilogo(int usernameRistoratore) {
 
-        String sql = "SELECT r.id_ristorante, r.nome_ristorante, r.citta, AVG(rec.valutazione) AS media_stelle " +
+        String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, AVG(rec.valutazione) AS media_stelle " +
                      "FROM ristoranti_the_knife r " +
-                     "LEFT JOIN recensione rec ON r.id_ristorante = rec.id_ristorante " +
+                     "LEFT JOIN recensione rec ON r.id_ristorante = rec.id_ristorante JOIN citta c on r.id_citta=c.id " +
                      "WHERE r.id_utente = ? " +
-                     "GROUP BY r.id_ristorante, r.nome_ristorante, r.citta;";
+                     "GROUP BY r.id_ristorante, r.nome_ristorante, c.nome;";
 
         try {
             List<Map<String, Object>> risultati = db.executeSelect(sql, usernameRistoratore);
@@ -149,7 +150,11 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
             for (Map<String, Object> ristorante : risultati) {
                 System.out.println("Nome: " + ristorante.get("nome_ristorante"));
                 System.out.println("Città: " + ristorante.get("citta"));
-                System.out.println("Media valutazioni: " + (ristorante.get("media_stelle") != null ? ristorante.get("media_stelle") : "Nessuna recensione"));
+                if(ristorante.get("media_stelle")==null){System.out.println("media: 0.0");}
+                else{
+                   Double valutazione = ((BigDecimal) ristorante.get("media_stelle")).doubleValue();
+                   System.out.println("Valutazione: " + valutazione);
+                }
                 System.out.println("----------------------------------------");
             }
 
@@ -339,9 +344,9 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
      *         (id_ristorante, nome_ristorante, citta, indirizzo, tipo_cucina, fascia_prezzo)
      */
     public static List<Map<String, Object>> visualizzaPreferiti(int idUtente) {
-        String sql = "SELECT r.id_ristorante, r.nome_ristorante, r.citta, r.indirizzo, r.tipo_cucina, r.fascia_prezzo " +
+        String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, r.indirizzo, r.tipo_cucina, r.fascia_prezzo " +
                      "FROM ristoranti_the_knife r " +
-                     "JOIN preferiti p ON r.id_ristorante = p.id_ristorante " +
+                     "JOIN preferiti p ON r.id_ristorante = p.id_ristorante JOIN citta c ON r.id_citta = c.id " +
                      "WHERE p.id_utente = ?;";
 
         try {
@@ -635,8 +640,8 @@ public static List<Map<String, Object>> showRecommended(){
                 for (Map<String, Object> ristorante : risultati) {
                     System.out.println("Nome: " + ristorante.get("nome_ristorante"));
 
-                        float media = ((Number) ristorante.get("media_valutazione")).floatValue();
-                        System.out.println("Media voti: " + String.format("%.2f", media));
+                        Double media = ((BigDecimal) ristorante.get("media_valutazione")).doubleValue();
+                        System.out.println("Media voti: " +media);
                     System.out.println("paese: " + ristorante.get("nazione"));
                     System.out.println("citta: " + ristorante.get("nome_citta"));
                     System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
