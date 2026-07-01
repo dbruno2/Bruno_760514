@@ -653,11 +653,23 @@ public static double[] findCoordinates() {
     double[] coord = new double[2];
     System.out.println("al fine di operare con coordinate geografiche corrette inserire nome citta(in inglese se sono grandi città (non varese)) e codice paese(es. IT per italia)");
     Scanner scanner = new Scanner(System.in);
-    System.out.println("inserire citta");
-    String nomeCitta = scanner.nextLine().trim();
-    System.out.println("inserire codice paese");
-    String codicePaese = scanner.nextLine().trim();
+    String nomeCitta;
+    String codicePaese;
+    while(true) {
+        try {
+            System.out.println("inserire citta");
+             nomeCitta = scanner.nextLine().trim();
+            if(nomeCitta.isEmpty()||nomeCitta.matches(".*\\d.*")) throw new IllegalArgumentException("nome citta non può essere vuoto.");
+            System.out.println("inserire codice paese");
+             codicePaese = scanner.nextLine().trim();
+            if(codicePaese.isEmpty()||codicePaese.matches(".*\\d.*")) throw new IllegalArgumentException("Il codice paese non può essere vuoto");
+            break;
+        }
+        catch(IllegalArgumentException e) {
+            System.err.println("valore inserito non valido");
 
+        }
+    }
     String sql = "SELECT\n" +
             "    c.nome,\n" +
             "    c.country_code,\n" +
@@ -689,7 +701,8 @@ public static double[] findCoordinates() {
             }
             while(true) {
                 try {
-                    int scelta = scanner.nextInt();
+                    String sceltaString = scanner.nextLine(); if(sceltaString.isEmpty()) throw new InputMismatchException();
+                    int scelta = Integer.parseInt(sceltaString);
                     if (scelta >= 1 && scelta <= risultati.size()) {
                         Map<String, Object> cittaScelta = risultati.get(scelta - 1);
                         lat = (Double) cittaScelta.get("lat");
