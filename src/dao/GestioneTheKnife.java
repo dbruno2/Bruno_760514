@@ -41,6 +41,7 @@ public class GestioneTheKnife {
    static DataBase db = new DataBase(url, user, pass);
     private static double lat;
     private static double lon;
+    static Scanner scanner=new Scanner(System.in);
 
     /**
  * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.*
@@ -93,8 +94,9 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
            String[] codNazione = codiceNazione.split("\\.");
            String admin1Code = codNazione[1];
            String countryCode = codNazione[0];
+           String admin2Code = "";
            String sql2 = "INSERT INTO citta (nome, country_code, admin1_code, admin2_code, lat, lon, codice_regione) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id;";
-           List<Map<String, Object>> ris = db.executeSelect(sql2, citta, countryCode, admin1Code, null, latitudine, longitudine, codiceNazione);
+           List<Map<String, Object>> ris = db.executeSelect(sql2, citta, countryCode, admin1Code, admin2Code, latitudine, longitudine, codiceNazione);
 
            if (!ris.isEmpty()) {
                idCitta = (int) ris.get(0).get("id");
@@ -719,8 +721,10 @@ public static Boolean modificaRecensione(int idRecensione, int idUtenteAutore, S
 
 public static double[] findCoordinates() {
     double[] coord = new double[2];
+
+
     System.out.println("al fine di operare con coordinate geografiche corrette inserire nome citta(in inglese se sono grandi città (non varese)) e codice paese(es. IT per italia)");
-    Scanner scanner = new Scanner(System.in);
+
     String nomeCitta;
     String codicePaese;
     while(true) {
@@ -734,7 +738,7 @@ public static double[] findCoordinates() {
             break;
         }
         catch(IllegalArgumentException e) {
-            System.err.println("valore inserito non valido");
+            System.out.println("valore inserito non valido");
 
         }
     }
@@ -765,13 +769,13 @@ public static double[] findCoordinates() {
                 String nome = (String) citta.get("nome");
                 String regione = (String) citta.get("regione");
                 String countryCode = (String) citta.get("country_code");
-                String lat= citta.get("lat").toString();
-                String lon= citta.get("lon").toString();
-                System.out.println((i + 1) + ": " + nome + ", " + regione + " (" + countryCode + ")," + " latitudine: " + lat + " ,longitudine: " + lon);
+                String strLat= citta.get("lat").toString();
+                String strLon= citta.get("lon").toString();
+                System.out.println((i + 1) + ": " + nome + ", " + regione + " (" + countryCode + ")," + " latitudine: " + strLat + " ,longitudine: " + strLon);
             }
             while(true) {
                 try {
-                    String sceltaString = scanner.nextLine(); if(sceltaString.isEmpty()) throw new InputMismatchException();
+                    String sceltaString = scanner.nextLine(); if(sceltaString.isEmpty()) throw new NumberFormatException();
                     int scelta = Integer.parseInt(sceltaString);
                     if (scelta >= 1 && scelta <= risultati.size()) {
                         Map<String, Object> cittaScelta = risultati.get(scelta - 1);
@@ -782,9 +786,9 @@ public static double[] findCoordinates() {
                         System.out.println("Scelta non valida. Riprova.");
                     }
                 }
-                catch(InputMismatchException e) {
-                    System.err.println("inserire un valore valido");
-                    scanner.next();
+                catch(NumberFormatException e) {
+                    System.out.println("inserire un valore valido");
+
                 }
             }
         } else {
@@ -794,16 +798,18 @@ public static double[] findCoordinates() {
                 try {
                     System.out.println("Città non trovata. Inserire coordinate manualmente.");
                     System.out.println("Inserire latitudine:");
-                    lat = scanner.nextDouble();
-                    if(lat<-90 || lat>90) {throw new InputMismatchException();}
+                    String lat1= scanner.nextLine().replace(",",".");
+                    lat= Double.parseDouble(lat1);
+                    if(lat<-90 || lat>90) {throw new NumberFormatException();}
                     System.out.println("Inserire longitudine:");
-                    lon = scanner.nextDouble();
-                    if(lon<-180 || lon>180) {throw new InputMismatchException();}
+                    String lon1= scanner.nextLine().replace(",",".");
+                    lon= Double.parseDouble(lon1);
+                    if(lon<-180 || lon>180) {throw new NumberFormatException();}
 
                     break;
-                } catch (InputMismatchException e) {
+                } catch (NumberFormatException e) {
                     System.out.println("Input non valido. Assicurati di inserire numeri validi per latitudine e longitudine.");
-                    scanner.nextLine();
+
                 }
             }
         }
@@ -812,7 +818,9 @@ public static double[] findCoordinates() {
         System.out.println("le coordinate sono lat:"+coord[0]+", lon:"+coord[1]);
 
     } catch (SQLException e) {
-        System.err.println("Errore durante l'esecuzione della query: " + e.getMessage());
+        System.out.println("Errore durante l'esecuzione della query: " + e.getMessage());
+        lat=0.0;
+        lon=0.0;
 
     }
     return coord;

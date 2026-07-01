@@ -280,8 +280,8 @@ public class Theknife {
                     System.out.print("Indirizzo: ");
                     String indirizzo = scanner.nextLine();
                     double[] coords = GestioneTheKnife.findCoordinates();
-                    int lat = (int) coords[0];
-                    int lon = (int) coords[1];
+                    double lat =  coords[0];
+                    double lon = coords[1];
                     String prezzo = leggiFasciaPrezzo();
                     System.out.print("Delivery (true/false): ");
                     boolean delivery = leggiBoolean();
