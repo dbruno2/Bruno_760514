@@ -20,14 +20,14 @@ import sicurezzaPassword.*;
  * 
  * Consente a clienti e ristoratori di registrarsi, effettuare il login
  * e usufruire di varie funzionalita come la ricerca avanzata, la gestione delle
- * recensioni ed i preferiti.
+ * recensioni e i preferiti.
  * 
  * 
  *   I clienti possono: aggiungere/rimuovere ristoranti dai preferiti,
  *       scrivere/modificare/eliminare recensioni, consultare le proprie liste
  *       ed effettuare ricerche.
  *   I ristoratori possono: inserire ristoranti, visualizzare riepiloghi
- *       o singole recensioni e rispondere ad esse.
+ *       o singole recensioni e rispondere a esse.
  * Tutta la logica di business fa capo alla classe {@code GestioneTheKnife} – qui
  * viene gestita unicamente l'interfaccia utente testuale.
  */
@@ -467,10 +467,10 @@ private static void stampaRistoranti(List<Map<String, Object>> ristoranti) {
         return null;
     }
 /**
- * Legge un valore numerico facoltativo (double) dalla console. Se l'input è vuoto, restituisce {@code null}.
- * Se l'input non è un numero valido, mostra un messaggio di errore e restituisce {@code null}.
+ * Legge un valore numerico facoltativo (double) dalla console. Se il valore in ingresso è vuoto, restituisce {@code null}.
+ * Se il valore in ingresso non è un numero valido, mostra un messaggio di errore e restituisce {@code null}.
  *
- * @return Il valore {@code double} inserito dall'utente o {@code null} se l'input è vuoto o non valido.
+ * @return Il valore {@code double} inserito dall'utente o {@code null} se il valore in ingresso è vuoto o non valido.
  */
     private static Double leggiDoubleFacoltativo() {
         String input = scanner.nextLine().trim();

@@ -13,9 +13,7 @@ package dao;
  * Fornisce metodi per l'aggiunta e gestione di ristoranti, recensioni, e preferiti.
  */
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.nio.file.Paths;
 import java.util.*;
 
 import dto.Ristorante;
@@ -48,7 +46,7 @@ public class GestioneTheKnife {
     /**
  * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.
  * <p>
- * La funzione valida i parametri in input, controlla la presenza di duplicati nel file, crea un nuovo oggetto
+ * La funzione valida i parametri in ingresso, controlla la presenza di duplicati nel file, crea un nuovo oggetto
  * {@link Ristorante} e lo salva nel file di archiviazione in formato testuale.
  *
  * @param nome                       il nome del Ristorante
@@ -274,17 +272,17 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
             return false;
         }
     }
-
     /**
      * Visualizza tutti i ristoranti preferiti dell'utente specificato.
      * @param idUtente id utente del quale si vuole visualizzare preferiti
      * @return lista dei ristoranti preferiti
      */
+
     public static List<Map<String, Object>> visualizzaPreferiti(int idUtente) {
-        String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, r.indirizzo, r.tipo_cucina, r.fascia_prezzo " +
-                     "FROM ristoranti_the_knife r " +
-                     "JOIN preferiti p ON r.id_ristorante = p.id_ristorante JOIN citta c ON r.id_citta = c.id " +
-                     "WHERE p.id_utente = ?;";
+        String sql ="SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, r.indirizzo, r.tipo_cucina,r.fascia_prezzo, ROUND(AVG(rec.valutazione), 2) AS media_stelle\n" +
+                "FROM ristoranti_the_knife r JOIN preferiti p ON r.id_ristorante = p.id_ristorante JOIN citta c ON r.id_citta = c.id LEFT JOIN recensione rec ON r.id_ristorante = rec.id_ristorante\n" +
+                "WHERE p.id_utente = ?\n" +
+                "GROUP BY r.id_ristorante, r.nome_ristorante, c.nome, r.indirizzo, r.tipo_cucina, r.fascia_prezzo;";
 
         try {
             List<Map<String, Object>> risultati = db.executeSelect(sql, idUtente);
@@ -299,6 +297,7 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
                 System.out.println("idRistorante: "+ristorante.get("id_ristorante"));
                 System.out.println("Nome: " + ristorante.get("nome_ristorante"));
                 System.out.println("Città: " + ristorante.get("citta"));
+                System.out.println((ristorante.get("media_stelle")==null)? "Media stelle: 0.0":"Media stelle: "+ ristorante.get("media_stelle"));
                 System.out.println("Indirizzo: " + ristorante.get("indirizzo"));
                 System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
                 System.out.println("Fascia di prezzo: " + ristorante.get("fascia_prezzo"));
