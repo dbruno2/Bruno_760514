@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * classe che si occupa della comunicazione tra applicazione e db
  */
-public class PostgresDB {
+public class DataBase {
 
     private final String url;
     private final String user;
@@ -21,7 +21,7 @@ public class PostgresDB {
      * @param user nome utente per l'accesso al database
      * @param password password per l'accesso al database
      */
-    public PostgresDB(String url, String user, String password) {
+    public DataBase(String url, String user, String password) {
         this.url = url;
         this.user = user;
         this.password = password;

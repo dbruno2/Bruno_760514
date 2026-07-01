@@ -39,7 +39,7 @@ public class GestioneTheKnife {
     static String pass =  "qwerty";
 
 
-   static PostgresDB db = new PostgresDB(url, user, pass);
+   static DataBase db = new DataBase(url, user, pass);
     private static double lat;
     private static double lon;
 
@@ -120,7 +120,7 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
                 return risultati;
             }
 
-            System.out.println("=== RIEPILOGO RISTORANTI ===");
+            System.out.println("- RIEPILOGO RISTORANTI -");
             for (Map<String, Object> ristorante : risultati) {
                 System.out.println("Nome: " + ristorante.get("nome_ristorante"));
                 System.out.println("Città: " + ristorante.get("citta"));
@@ -182,7 +182,7 @@ public static Map<String, Object> visualizzaRecensioniPerRistorante(int idRistor
                 risultato.put("media_stelle", stats.get("media_stelle"));
             }
 
-            System.out.println("=== RECENSIONI ===");
+            System.out.println("- RECENSIONI -");
             for (Map<String, Object> rec : recensioni) {
                 System.out.println("ID: " + rec.get("id_recensione"));
                 System.out.println("username: " + rec.get("username"));
@@ -198,7 +198,7 @@ public static Map<String, Object> visualizzaRecensioniPerRistorante(int idRistor
                 System.out.println("----------------------------------------");
             }
 
-            System.out.println("=== STATISTICHE ===");
+            System.out.println("- STATISTICHE -");
             System.out.println("Numero recensioni: " + risultato.get("numero_recensioni"));
             System.out.println("Media valutazioni: " + risultato.get("media_stelle") + " stelle");
         }

@@ -1,6 +1,6 @@
 package serverTK;
 
-import dao.PostgresDB;
+import dao.DataBase;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public class serverTK {
 /*nota: non so se deve girare in locale o meno, eventualmente basterebbe solo mettere il mio indirzzo ip al posto di localhost e abilitare l'accesso su postgres*/
 
 
-        PostgresDB db = new PostgresDB(url, user, pass);
+        DataBase db = new DataBase(url, user, pass);
 
         try {
             List<Map<String, Object>> rows = db.executeSelect("SELECT version() AS pg_version", (Object[]) null);
