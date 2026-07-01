@@ -16,7 +16,6 @@ package dao;
 import java.sql.SQLException;
 import java.util.*;
 
-import dto.Ristorante;
 import sicurezzaPassword.Criptazione;
 
 /**
@@ -44,10 +43,7 @@ public class GestioneTheKnife {
     private static double lon;
 
     /**
- * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.
- * <p>
- * La funzione valida i parametri in ingresso, controlla la presenza di duplicati nel file, crea un nuovo oggetto
- * {@link Ristorante} e lo salva nel file di archiviazione in formato testuale.
+ * Aggiunge un nuovo Ristorante al sistema, se i dati sono validi e non esiste gia un Ristorante con lo stesso nome e indirizzo.*
  *
  * @param nome                       il nome del Ristorante
  * @param idRistoratore             l'id del ristoratore
@@ -63,33 +59,62 @@ public class GestioneTheKnife {
  * @return true se il Ristorante è stato aggiunto correttamente, false in caso di errore
  */
 
-public static boolean aggiungiRistorante(String nome, int idRistoratore, String nazione, String citta, String indirizzo, int latitudine,
-    int longitudine, String prezzo, boolean disponibilita_delivery, boolean disponibilita_prenotazione,
-    String tipo_Cucina  ) {
+public static boolean aggiungiRistorante(String nome, int idRistoratore, String citta, String indirizzo, double latitudine,
+    double longitudine, String prezzo, boolean disponibilita_delivery, boolean disponibilita_prenotazione,
+    String tipo_Cucina, String codiceNazione  ) {
 
     if (nome == null || nome.isEmpty() ||
-        nazione == null || nazione.isEmpty() ||
+
         citta == null || citta.isEmpty() ||
         indirizzo == null || indirizzo.isEmpty() ||
         tipo_Cucina == null || tipo_Cucina.isEmpty())
         return false;
 
     try {
+        /*  bisogna assicurarsi che le coordinate inserite non siano presenti a delle coordinate di citta gia presenti in tabella (in citta c'è un
+            vincolo unique per fare si che non ci siano citta con stesso nome, nazione/regione, coordinate (nome e nazione/regione non basta, c'è omonimia pure
+            nella stessa regione, si guardi Thiers in francia stando a geoNames(il dataset da noi usato) ce ne sono 2 nella stessa regione), devo assicurarmi che
+            nessun utente faccia inserimenti del tipo "stessa località ma cambio di poco le coordinate"
+            * quindi per evitare cio faccio una query preventiva che controlla se la citta che vuole inserire l'utente non è praticamente con le coordinate di un altra citta
+            * (o molto vicine, tipo raggio 1 km, geoNames non usa il centro città (non sempre) per le coordinate ma un punto importante della citta, se lo sommiamo al fatto
+            che esistono citta piccole è possibile che le 2 coordinate siano molto vicine ma di citta differenti, credo (spero) che non ci siano citta i cui centri/punti importanti distino solo 1 km).
+            se il controllo va bene si inserisce la citta, altrimenti nulla.
+            di solito la javadoc basta ma questo pezzo meritava un commento (anche perche le javadoc devono essere concise mi pare)
+            * */
+        int idCitta=0;
+
+       String sql1="SELECT id FROM citta \n" +
+               "WHERE LOWER(nome) = LOWER(?) AND codice_regione = ? AND (6371 * 2 * ASIN(SQRT(POWER(SIN(RADIANS(lat - ?) / 2), 2) + COS(RADIANS(?)) * COS(RADIANS(lat)) * POWER(SIN(RADIANS(lon - ?) / 2), 2)))) <= 1.0 ;\n";
+       List<Map<String, Object>> risultati1 = db.executeSelect(sql1, citta, codiceNazione, latitudine, latitudine, longitudine);
+       if(!risultati1.isEmpty()){
+            idCitta = (int) risultati1.get(0).get("id");
+       }
+       else{
+           String[] codNazione = codiceNazione.split("\\.");
+           String admin1Code = codNazione[1];
+           String countryCode = codNazione[0];
+           String sql2 = "INSERT INTO citta (nome, country_code, admin1_code, admin2_code, lat, lon, codice_regione) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id;";
+           List<Map<String, Object>> ris = db.executeSelect(sql2, citta, countryCode, admin1Code, null, latitudine, longitudine, codiceNazione);
+
+           if (!ris.isEmpty()) {
+               idCitta = (int) ris.get(0).get("id");
+           }
+       }
+
+
+
       String sql="INSERT INTO ristoranti_the_knife (\n" +
               "    nome_ristorante,\n" +
-              "    nazione,\n" +
-              "    citta,\n" +
               "    indirizzo,\n" +
-              "    latitudine,\n" +
-              "    longitudine,\n" +
               "    fascia_prezzo,\n" +
               "    delivery,\n" +
               "    prenotabile,\n" +
               "    tipo_cucina,\n" +
-              "    id_utente\n" +
+              "    id_utente, \n" +
+              "     id_citta\n" +
               ")\n" +
-              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-      int x=db.execute(sql, nome, nazione, citta, indirizzo, latitudine, longitudine, prezzo, disponibilita_delivery, disponibilita_prenotazione, tipo_Cucina, idRistoratore);
+              "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+      int x=db.execute(sql, nome, indirizzo, prezzo, disponibilita_delivery, disponibilita_prenotazione, tipo_Cucina, idRistoratore, idCitta);
       if(x<=0){return false;}
       else {return true;}
     } catch (SQLException e) {
@@ -97,8 +122,52 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
         return false;
     }
 }
+/**
+ * Metodo per la ricerca della regione dato codice nazione in ingress
+ * @return codiceRegione stringa codiceNazione.codiceRegione*/
+public static String selectRegion(){
+    /*no non è una soluzione fragile, il dataset ha tutte le nazioni (persino le regioni albanesi!) non bisogna preoccuparsi quindi di gestire il caso in cui non
+    * ci sono le regioni di una nazione (o stati/contee nel caso US)*/
+    while(true) {
+        System.out.println("inserire codice nazione");
+        Scanner scanner = new Scanner(System.in);
+        String codiceNazione = scanner.nextLine();
 
-
+        String sql = "SELECT DISTINCT codice, nome FROM regioni WHERE LOWER(codice) LIKE LOWER(? || '.%') ORDER BY nome ASC;";
+        try {
+            List<Map<String, Object>> risultati = db.executeSelect(sql, codiceNazione);
+            if (risultati.isEmpty()) {
+                System.out.println("non è stata trovata la nazione che cerca, inserirne un altra");
+            } else {
+                System.out.println("selezionare regione(o stato se il proprio codice nazione è US)");
+                for (int i = 0; i < risultati.size(); i++) {
+                    Map<String, Object> regione = risultati.get(i);
+                    String nome = (String) regione.get("codice");
+                    String nomeRegione = (String) regione.get("nome");
+                    System.out.println((i + 1) + ": " + nome + ", " + nomeRegione);
+                }
+                while(true) {
+                    try {
+                        String sceltaString = scanner.nextLine(); if(sceltaString.isEmpty()) throw new InputMismatchException();
+                        int scelta = Integer.parseInt(sceltaString);
+                        if (scelta >= 1 && scelta <= risultati.size()) {
+                            Map<String, Object> cittaScelta = risultati.get(scelta - 1);
+                            String codiceRegione = (String) cittaScelta.get("codice");
+                            return codiceRegione;
+                        } else {
+                            System.out.println("Scelta non valida. Riprova.");
+                        }
+                    }
+                    catch(InputMismatchException e) {
+                        System.err.println("inserire un valore valido");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("errore durante esecuzione query: " + e.getMessage());
+        }
+    }
+};
    /**
  * Visualizza il riepilogo di tutti i ristoranti, quindi mostra nome, citta ristorante(per evitare omonimia) e media voti
     * @param idRistoratore id del ristoratore
@@ -696,7 +765,9 @@ public static double[] findCoordinates() {
                 String nome = (String) citta.get("nome");
                 String regione = (String) citta.get("regione");
                 String countryCode = (String) citta.get("country_code");
-                System.out.println((i + 1) + ": " + nome + ", " + regione + " (" + countryCode + ")");
+                String lat= citta.get("lat").toString();
+                String lon= citta.get("lon").toString();
+                System.out.println((i + 1) + ": " + nome + ", " + regione + " (" + countryCode + ")," + " latitudine: " + lat + " ,longitudine: " + lon);
             }
             while(true) {
                 try {
@@ -717,6 +788,8 @@ public static double[] findCoordinates() {
                 }
             }
         } else {
+
+
             while(true) {
                 try {
                     System.out.println("Città non trovata. Inserire coordinate manualmente.");

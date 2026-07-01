@@ -289,10 +289,12 @@ public class Theknife {
                     boolean prenotazione = leggiBoolean();
                     System.out.print("Tipo cucina: ");
                     String cucina = scanner.nextLine();
+                    String codiceNazione=GestioneTheKnife.selectRegion();
+
 
                     boolean aggiunto = GestioneTheKnife.aggiungiRistorante(
-                            nome, id, nazione, citta, indirizzo, lat, lon, prezzo,
-                            delivery, prenotazione, cucina
+                            nome, id,citta, indirizzo, lat, lon, prezzo,
+                            delivery, prenotazione, cucina, codiceNazione
                     );
 
                     if (aggiunto) {
