@@ -13,7 +13,6 @@ package dao;
  * Fornisce metodi per l'aggiunta e gestione di ristoranti, recensioni, e preferiti.
  */
 
-import java.io.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.nio.file.Paths;
@@ -32,28 +31,10 @@ import sicurezzaPassword.Criptazione;
  *
  * <p>Questa classe non è progettata per essere istanziata.
  *
- * @version 1.0
+ *
  */
 public class GestioneTheKnife {
     
-    // Path dinamici
-
-    /**
-     * Percorso del file contenente i dati degli utenti.
-     */
-    public static final String fileUtentiPath = Paths.get("..", "dati", "utenti.txt").normalize().toString();
-
-
-    /**
-     * Percorso del file contenente i dati dei ristoranti.
-     */
-    public static final String fileRistorantiPath = Paths.get("..", "dati", "ristoranti.txt").normalize().toString();
-
-
-    /**
-     * Percorso del file contenente i dati delle recensioni.
-     */
-     public static final String fileRecensioniPath = Paths.get("..", "dati", "recensioni.txt").normalize().toString();
 
     static String url = "jdbc:postgresql://localhost:5432/theKnife";
     static String user = "postgres";
@@ -71,7 +52,7 @@ public class GestioneTheKnife {
  * {@link Ristorante} e lo salva nel file di archiviazione in formato testuale.
  *
  * @param nome                       il nome del Ristorante
- * @param usernameRistoratore        lo username del ristoratore associato
+ * @param idRistoratore             l'id del ristoratore
  * @param nazione                   la nazione del Ristorante
  * @param citta                     la citta in cui si trova il Ristorante
  * @param indirizzo                 l'indirizzo del Ristorante
@@ -81,7 +62,7 @@ public class GestioneTheKnife {
  * @param disponibilita_delivery     true se il Ristorante offre consegna a domicilio
  * @param disponibilita_prenotazione true se è possibile prenotare online
  * @param tipo_Cucina               il tipo di cucina offerta
- * @return true se il Ristorante è stato aggiunto correttamente, false in caso di errore o dati duplicati
+ * @return true se il Ristorante è stato aggiunto correttamente, false in caso di errore
  */
 
 public static boolean aggiungiRistorante(String nome, int idRistoratore, String nazione, String citta, String indirizzo, int latitudine,
@@ -121,16 +102,11 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
 
 
    /**
- * Visualizza un riepilogo dei ristoranti registrati dall'utente specificato,
- * mostrando per ciascuno il nome, la citta e la media delle valutazioni ricevute.
- * <p>
- * I dati vengono letti da due file: uno contenente i ristoranti e l'altro le recensioni.
- * Il metodo calcola la media delle stelle ricevute per ogni Ristorante associato all'utente
- * e stampa i risultati sulla console.
- *
- * @param usernameRistoratore lo username del ristoratore di cui visualizzare il riepilogo
+ * Visualizza il riepilogo di tutti i ristoranti, quindi mostra nome, citta ristorante(per evitare omonimia) e media voti
+    * @param idRistoratore id del ristoratore
+    * @return lista contenente nome,citta e valutazione media di ogni ristorante
  */
-    public static List<Map<String, Object>> visualizzaRiepilogo(int usernameRistoratore) {
+    public static List<Map<String, Object>> visualizzaRiepilogo(int idRistoratore) {
 
         String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, AVG(rec.valutazione) AS media_stelle " +
                      "FROM ristoranti_the_knife r " +
@@ -139,7 +115,7 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
                      "GROUP BY r.id_ristorante, r.nome_ristorante, c.nome;";
 
         try {
-            List<Map<String, Object>> risultati = db.executeSelect(sql, usernameRistoratore);
+            List<Map<String, Object>> risultati = db.executeSelect(sql, idRistoratore);
 
             if (risultati.isEmpty()) {
                 System.out.println("Nessun ristorante trovato per l'utente specificato.");
@@ -166,16 +142,11 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
 }
 
 /**
- * Visualizza tutte le recensioni disponibili per un Ristorante specifico.
- * <p>
- * Il metodo legge il file delle recensioni, filtra quelle associate al Ristorante specificato,
- * stampa ogni recensione con i dettagli dell'utente, valutazione, testo e risposta,
- * e calcola la media delle valutazioni.
- * <p>
- * Se il file non è configurato o non ci sono recensioni, stampa un messaggio informativo.
- *
- * @param nomeRistorante il nome del Ristorante di cui visualizzare le recensioni
+ * Visualizza recensioni ristorante e statistiche (numero recensioni e media voto)
+ * @param idRistorante id del ristorante su cui effettuare la ricerca di recensioni
+ * @return lista recensioni, numero recensioni e media voto
  */
+
 public static Map<String, Object> visualizzaRecensioniPerRistorante(int idRistorante) {
     Map<String, Object> risultato = new HashMap<>();
 
@@ -191,7 +162,7 @@ public static Map<String, Object> visualizzaRecensioniPerRistorante(int idRistor
                            "WHERE rec.id_ristorante = ? " +
                            "ORDER BY rec.data_recensione DESC;";
 
-    String sqlStatistiche = "SELECT " +
+    String sql1 = "SELECT " +
                             "    COUNT(*) AS numero_recensioni, " +
                             "    ROUND(AVG(valutazione), 2) AS media_stelle " +
                             "FROM recensione " +
@@ -206,7 +177,7 @@ public static Map<String, Object> visualizzaRecensioniPerRistorante(int idRistor
             risultato.put("numero_recensioni", 0);
             risultato.put("media_stelle", 0.0);
         } else {
-            List<Map<String, Object>> statistiche = db.executeSelect(sqlStatistiche, idRistorante);
+            List<Map<String, Object>> statistiche = db.executeSelect(sql1, idRistorante);
 
             if (!statistiche.isEmpty()) {
                 Map<String, Object> stats = statistiche.get(0);
@@ -245,17 +216,10 @@ public static Map<String, Object> visualizzaRecensioniPerRistorante(int idRistor
 
    /**
  * Permette a un ristoratore di rispondere a una recensione ricevuta su uno dei suoi ristoranti.
- * <p>
- * Il metodo verifica che il Ristorante appartenga all'utente loggato, cerca la recensione corrispondente
- * nel file delle recensioni, e se non ha ancora ricevuto una risposta, aggiunge il testo fornito.
- * L'intero file viene riscritto con la modifica applicata.
- *
- * @param usernameLoggato   lo username del ristoratore loggato
- * @param nomeRistorante    il nome del Ristorante a cui appartiene la recensione
- * @param usernameCliente   lo username del cliente che ha scritto la recensione
- * @param risposta          il testo della risposta del ristoratore
- * @return true se la risposta è stata aggiunta con successo, false in caso di errore, Ristorante non valido,
- *         recensione inesistente o gia risposto
+    * @param idRecensione recensione alla quale rispondere
+    * @param idRistoratoreAutore id del ristoratore che risponde
+    * @param testo testo di risposta alla recensione
+    * @return true se operazione ha successo, false in caso di errore o risposta già inserita
  */
 public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAutore, String testo) {
 
@@ -264,33 +228,16 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
         System.err.println("Il testo della risposta non può essere vuoto.");
         return false;
     }
-
-    // Query per verificare che il ristoratore sia proprietario del ristorante associato alla recensione
-    String sqlVerifica = "SELECT r.id_utente FROM recensione rec " +
-                         "JOIN ristoranti_the_knife r ON rec.id_ristorante = r.id_ristorante " +
-                         "WHERE rec.id_recensione = ? AND r.id_utente = ?;";
-
-    // Query per aggiungere la risposta
-    String sqlInserisci = "INSERT INTO risposta_recensione (testo, id_recensione) " +
-                          "VALUES (?, ?);";
-
+    String sql = "INSERT INTO risposta_recensione (testo, id_recensione) " +
+                          "VALUES (?,?);";
     try {
-        // Verifica autorizzazione
-        List<Map<String, Object>> verifica = db.executeSelect(sqlVerifica, idRecensione, idRistoratoreAutore);
-
-        if (verifica.isEmpty()) {
-            System.err.println("Errore: non sei il proprietario di questo ristorante o la recensione non esiste.");
-            return false;
-        }
-
-        // Aggiungi la risposta
-        int rCoinvolte = db.execute(sqlInserisci, testo, idRecensione);
+        int rCoinvolte = db.execute(sql, testo, idRecensione);
 
         if (rCoinvolte > 0) {
             System.out.println("Risposta aggiunta con successo.");
             return true;
         } else {
-            System.err.println("Errore: impossibile aggiungere la risposta.");
+            System.err.println("hai gia risposto alla recensione.");
             return false;
         }
     } catch (SQLException e) {
@@ -304,13 +251,9 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
 
     /**
      * Aggiunge un ristorante alla lista dei preferiti dell'utente.
-     * <p>
-     * Se il ristorante è già nei preferiti dell'utente, la query non farà nulla
-     * grazie alla clausola ON CONFLICT DO NOTHING.
-     *
-     * @param idUtente l'ID dell'utente
-     * @param idRistorante l'ID del ristorante da aggiungere ai preferiti
-     * @return true se il preferito è stato aggiunto (o era già presente), false in caso di errore
+     * @param idUtente id utente
+     * @param idRistorante id ristorante da aggiungere ai preferiti
+     * @return true se operazione ha successo, false se il ristorante è già nei preferiti o in caso di errore
      */
     public static boolean aggiungiPreferito(int idUtente, int idRistorante) {
         String sql = "INSERT INTO preferiti (id_utente, id_ristorante) " +
@@ -325,7 +268,7 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
                 return true;
             } else {
                 System.out.println("Il ristorante è già nei tuoi preferiti.");
-                return true;
+                return false;
             }
         } catch (SQLException e) {
             System.err.println("Errore durante l'aggiunta del preferito: " + e.getMessage());
@@ -334,14 +277,9 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
     }
 
     /**
-     * Visualizza tutti i ristoranti preferiti dell'utente specificato dal database.
-     * <p>
-     * Esegue una query JOIN tra la tabella ristoranti_the_knife e preferiti
-     * per recuperare i dettagli dei ristoranti preferiti dell'utente.
-     *
-     * @param idUtente l'ID dell'utente di cui visualizzare i preferiti
-     * @return una lista di Map contenente i dati dei ristoranti preferiti
-     *         (id_ristorante, nome_ristorante, citta, indirizzo, tipo_cucina, fascia_prezzo)
+     * Visualizza tutti i ristoranti preferiti dell'utente specificato.
+     * @param idUtente id utente del quale si vuole visualizzare preferiti
+     * @return lista dei ristoranti preferiti
      */
     public static List<Map<String, Object>> visualizzaPreferiti(int idUtente) {
         String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, r.indirizzo, r.tipo_cucina, r.fascia_prezzo " +
@@ -377,12 +315,9 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
 
     /**
      * Rimuove un ristorante dalla lista dei preferiti dell'utente.
-     * <p>
-     * Esegue una query DELETE sulla tabella preferiti usando l'ID dell'utente e l'ID del ristorante.
-     *
      * @param idUtente l'ID dell'utente
      * @param idRistorante l'ID del ristorante da rimuovere dai preferiti
-     * @return true se il preferito è stato rimosso con successo, false in caso di errore
+     * @return true se operazione ha successo altrimenti false
      */
     public static boolean rimuoviPreferito(int idUtente, int idRistorante) {
         String sql = "DELETE FROM preferiti " +
@@ -404,24 +339,15 @@ public static boolean rispondiRecensione(int idRecensione, int idRistoratoreAuto
         }
     }
 
-   /**
- * Aggiunge una nuova recensione a un Ristorante specificato, se non gia presente per l'utente.
- * <p>
- * Il metodo verifica che i dati siano validi, controlla l'esistenza del Ristorante, verifica che l'utente
- * non abbia gia recensito lo stesso Ristorante nella stessa localita e, in caso positivo, aggiunge
- * la nuova recensione al file delle recensioni.
- *
- * @param username          lo username del cliente che lascia la recensione
- * @param nomeRistorante    il nome del Ristorante recensito
- * @param luogoRistorante   la citta o localita in cui si trova il Ristorante
- * @param valutazione       il punteggio assegnato (es. da 1 a 5)
- * @param testoRecensione   il testo della recensione
- * @return true se la recensione è stata aggiunta correttamente, false in caso di errore o se la recensione
- *         è gia presente
- */
+ /**
+  * Aggiunge una recensione a un ristorante
+  * @param testo testo della recensione
+  * @param valutazione voto recensione
+  * @param idUtenteAutore id utente che effettua recensione
+  * @param idRistorante id ristorante che riceve recensione
+  * @return true se operazione ha successo altrimenti false*/
 public static boolean aggiungiRecensione(String testo, int valutazione, int idUtenteAutore, int idRistorante) {
 
-    // Validazione client-side
     if (testo == null || testo.isEmpty()) {
         System.err.println("Il testo della recensione non può essere vuoto.");
         return false;
@@ -453,18 +379,10 @@ public static boolean aggiungiRecensione(String testo, int valutazione, int idUt
     
 
   /**
- * Verifica le credenziali di accesso di un utente, controllando username, password e ruolo.
- * <p>
- * Il metodo legge il file degli utenti, cerca una corrispondenza per username, confronta
- * la password (in chiaro o cifrata, a seconda dell’implementazione) e il ruolo.
- * Restituisce {@code true} solo se tutti e tre i dati corrispondono.
- * <p>
- * In caso di errore di lettura file o credenziali non valide, stampa un messaggio sulla console
- * e restituisce {@code false}.
- *
- * @param username  lo username inserito dall’utente
- * @param password  la password associata all’utente
- * @return {@code true} se login riuscito, {@code false} in caso di errore o credenziali non valide
+ * Permette a un utente di effettuare il login verificando le credenziali fornite.
+   * @param username nome utente
+   * @param password password
+   * @return stringa composta da esitoOperazione+ruoloUtente+idUtente
  */
     public static String login(String username, String password) {
 
@@ -502,22 +420,19 @@ public static boolean aggiungiRecensione(String testo, int valutazione, int idUt
     }
 
 
-
 /**
- * Registra un nuovo utente nel file specificato. Se il file non esiste, viene creato.
- * Verifica che l'username non sia gia presente prima di aggiungere il nuovo utente.
+ * Registra un nuovo utente inserendolo nel db
+ * @param nome nome dell'utente
+ * @param cognome cognome dell'utente
+ * @param username username dell'utente
+ * @param password password dell'utente
+ * @param dataNascita data di nascita dell'utente
+ * @param domicilio domicilio dell'utente
+ * @param ruolo ruolo dell'utente
  *
- * @param nome        Il nome dell'utente.
- * @param cognome     Il cognome dell'utente.
- * @param username    L'username dell'utente.
- * @param password    La password dell'utente.
- * @param dataNascita La data di nascita dell'utente.
- * @param domicilio   Il domicilio dell'utente.
- * @param ruolo       Il ruolo dell'utente.
- * @param preferiti   Le preferenze dell'utente.
- * @return            {@code true} se l'utente è stato registrato con successo, {@code false} se l'username esiste gia o si è verificato un errore.
+ * @return true se l'utente è stato registrato con successo altrimenti false
  */
-    public static boolean registraUtente(String nome, String cognome, String username, String password, String dataNascita, String domicilio, String ruolo, String preferiti) {
+    public static boolean registraUtente(String nome, String cognome, String username, String password, String dataNascita, String domicilio, String ruolo) {
 
         String sql = "INSERT INTO utenti (username, password, nome, cognome, ruolo, data_nascita, indirizzo) VALUES (?, ?, ?, ?, ?::tipo_ruolo, ?::date, ?)";
         try {
@@ -531,6 +446,10 @@ public static boolean aggiungiRecensione(String testo, int valutazione, int idUt
 
 
 }
+/**
+ * Mostra all'utente i ristoranti consigliati in base alla sua posizione in un raggio di 10km
+ * @return lista di ristoranti consigliati
+ */
 public static List<Map<String, Object>> showRecommended(){
         System.out.println("inserire località dalla quale si sta eseguendo theKnife");
         double[] coords= findCoordinates();
@@ -572,8 +491,8 @@ public static List<Map<String, Object>> showRecommended(){
                 System.out.println("paese: " + ristorante.get("nazione"));
                 System.out.println("citta: " + ristorante.get("nome_citta"));
                 System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
-                float media = ((Number) ristorante.get("valutazione_media")).floatValue();
-                System.out.println("Media voti: " + String.format("%.2f", media));
+                Double media = ((BigDecimal) ristorante.get("valutazione_media")).doubleValue();
+                System.out.println("Media voti: " +media);
                 System.out.println("Fascia di prezzo: " + ristorante.get("fascia_prezzo"));
                 System.out.println("Delivery: " + (Boolean.TRUE.equals(ristorante.get("delivery")) ? "Si" : "No"));
                 System.out.println("Prenotabile: " + (Boolean.TRUE.equals(ristorante.get("prenotabile")) ? "Si" : "No"));
@@ -598,6 +517,7 @@ public static List<Map<String, Object>> showRecommended(){
  * @param prenotazione disponibilità di prenotazione
  * @param stelleMin numero minimo di stelle
  * @param rad raggio di ricerca
+ * @return lista di ristoranti che soddisfano i criteri
  */
     public static List<Map<String, Object>> cercaRistorantiAvanzata(
     Double lat,
@@ -660,14 +580,12 @@ return risultati;
 
 
     
-    /**
- * Elimina una recensione specifica dal file delle recensioni, identificandola tramite username, nome e luogo del Ristorante.
- * Se la recensione esiste, viene rimossa dal file; altrimenti, viene segnalato che non è stata trovata.
- *
- * @param username  L'username dell'utente che ha scritto la recensione.
- * @param nomeRis   Il nome del Ristorante associato alla recensione.
- * @param luogoRis  Il luogo del Ristorante associato alla recensione.
- */
+   /**
+    * Cancella una recensione identificandola tramite idRecensione e idUtenteAutore.
+    * @param idRecensione L'ID della recensione da eliminare.
+    * @param idUtenteAutore L'ID dell'utente autore della recensione.
+    * @return true se la recensione è stata eliminata con successo, false altrimenti.
+    * */
     public static Boolean eliminaRecensione(int idRecensione, int idUtenteAutore) {
 
     String sql = "DELETE FROM recensione " +
@@ -680,7 +598,7 @@ return risultati;
             System.out.println("Recensione eliminata con successo.");
             return true;
         } else {
-            System.err.println("Errore: nessuna recensione trovata o non sei l'autore.");
+            System.err.println("Errore: nessuna recensione trovata ");
             return false;
         }
     } catch (SQLException e) {
@@ -690,18 +608,15 @@ return risultati;
 }
     
 /**
- * Modifica una recensione esistente nel file delle recensioni, identificandola tramite username,
- * nome e luogo del Ristorante. Aggiorna il voto e il testo della recensione se la voce è trovata.
- *
- * @param username       L'username dell'utente che ha scritto la recensione.
- * @param nomeRistorante Il nome del Ristorante associato alla recensione.
- * @param luogoRis       Il luogo del Ristorante associato alla recensione.
- * @param voto           Il nuovo voto assegnato al Ristorante.
- * @param nuovaRec       Il nuovo testo della recensione.
+ * Modifica una recensione identificandola tramite l'ID della recensione e l'ID dell'utente autore.
+ * @param idRecensione L'ID della recensione da modificare.
+ * @param idUtenteAutore L'ID dell'utente autore della recensione.
+ * @param testo Il nuovo testo della recensione.
+ * @param valutazione La nuova valutazione della recensione.
+ * @return true se la recensione è stata modificata con successo, false altrimenti.
  */
 public static Boolean modificaRecensione(int idRecensione, int idUtenteAutore, String testo, int valutazione) {
 
-    // Validazione client-side
     if (testo == null || testo.isEmpty()) {
         System.err.println("Il testo della recensione non può essere vuoto.");
         return false;
@@ -723,7 +638,7 @@ public static Boolean modificaRecensione(int idRecensione, int idUtenteAutore, S
             System.out.println("Recensione modificata con successo.");
             return true;
         } else {
-            System.err.println("Errore: nessuna recensione trovata o non sei l'autore.");
+            System.err.println("Errore: nessuna recensione trovata");
             return false;
         }
     } catch (SQLException e) {
@@ -733,7 +648,7 @@ public static Boolean modificaRecensione(int idRecensione, int idUtenteAutore, S
 }
 
 
-/**metodo per la ricerca delle coordinate geografiche di una città, utile per la ricerca dei ristoranti nelle vicinanze
+/**Metodo per la ricerca delle coordinate geografiche di una città, utile per la ricerca dei ristoranti nelle vicinanze
  * se la citta indicata dall'utente è nel db vengono restituite le coordinate, altrimenti l'utente può inserire manualmente le coordinate
  * @return un array di double contenente latitudine e longitudine
  */
