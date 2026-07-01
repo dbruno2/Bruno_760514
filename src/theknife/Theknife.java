@@ -142,7 +142,7 @@ public class Theknife {
 
         boolean registrato = GestioneTheKnife.registraUtente(
                 nome, cognome, username, passwordCriptata,
-                dataNascitaStr, domicilio, ruolo, ""
+                dataNascitaStr, domicilio, ruolo
         );
 
         if (registrato) {

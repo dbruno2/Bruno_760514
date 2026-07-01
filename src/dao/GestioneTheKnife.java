@@ -108,7 +108,7 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
  */
     public static List<Map<String, Object>> visualizzaRiepilogo(int idRistoratore) {
 
-        String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, AVG(rec.valutazione) AS media_stelle " +
+        String sql = "SELECT r.id_ristorante, r.nome_ristorante, c.nome AS citta, ROUND(AVG(rec.valutazione),2) AS media_stelle " +
                      "FROM ristoranti_the_knife r " +
                      "LEFT JOIN recensione rec ON r.id_ristorante = rec.id_ristorante JOIN citta c on r.id_citta=c.id " +
                      "WHERE r.id_utente = ? " +
@@ -128,8 +128,7 @@ public static boolean aggiungiRistorante(String nome, int idRistoratore, String 
                 System.out.println("Città: " + ristorante.get("citta"));
                 if(ristorante.get("media_stelle")==null){System.out.println("media: 0.0");}
                 else{
-                   Double valutazione = ((BigDecimal) ristorante.get("media_stelle")).doubleValue();
-                   System.out.println("Valutazione: " + valutazione);
+                   System.out.println("Valutazione: " +   ristorante.get("media_stelle"));
                 }
                 System.out.println("----------------------------------------");
             }
@@ -470,7 +469,7 @@ public static List<Map<String, Object>> showRecommended(){
             "                   SIN(RADIANS(dc.lat))\n" +
             "               )\n" +
             "           ) AS distanza_km,\n" +
-            "           COALESCE(AVG(rec.valutazione), 0) AS valutazione_media\n" +
+            "           COALESCE(ROUND(AVG(rec.valutazione),2), 0) AS valutazione_media\n" +
             "    FROM ristoranti_the_knife r\n" +
             "    JOIN citta dc \n" +
             "        ON r.id_citta = dc.id\n" +
@@ -491,8 +490,7 @@ public static List<Map<String, Object>> showRecommended(){
                 System.out.println("paese: " + ristorante.get("nazione"));
                 System.out.println("citta: " + ristorante.get("nome_citta"));
                 System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
-                Double media = ((BigDecimal) ristorante.get("valutazione_media")).doubleValue();
-                System.out.println("Media voti: " +media);
+                System.out.println("Media voti: " +ristorante.get("valutazione_media"));
                 System.out.println("Fascia di prezzo: " + ristorante.get("fascia_prezzo"));
                 System.out.println("Delivery: " + (Boolean.TRUE.equals(ristorante.get("delivery")) ? "Si" : "No"));
                 System.out.println("Prenotabile: " + (Boolean.TRUE.equals(ristorante.get("prenotabile")) ? "Si" : "No"));
@@ -537,7 +535,7 @@ public static List<Map<String, Object>> showRecommended(){
                 "           dc.nome AS nome_citta,\n" +
                 "           dc.country_code AS nazione,\n" +
                 "           (6371 * 2 * ASIN(SQRT(POWER(SIN(RADIANS(dc.lat - ?) / 2), 2) + COS(RADIANS(?)) * COS(RADIANS(dc.lat)) * POWER(SIN(RADIANS(dc.lon - ?) / 2), 2)))) AS distanza_km,\n" +
-                "           COALESCE(AVG(rec.valutazione), 0) AS media_valutazione\n" +
+                "           COALESCE(ROUND(AVG(rec.valutazione),2), 0) AS media_valutazione\n" +
                 "    FROM ristoranti_the_knife r_inner\n" +
                 "    JOIN citta dc ON r_inner.id_citta = dc.id\n" +
                 "    LEFT JOIN recensione rec ON r_inner.id_ristorante = rec.id_ristorante\n" +
@@ -559,9 +557,7 @@ public static List<Map<String, Object>> showRecommended(){
                 System.out.println("Lista dei risultati:");
                 for (Map<String, Object> ristorante : risultati) {
                     System.out.println("Nome: " + ristorante.get("nome_ristorante"));
-
-                        Double media = ((BigDecimal) ristorante.get("media_valutazione")).doubleValue();
-                        System.out.println("Media voti: " +media);
+                        System.out.println("Media voti: " +ristorante.get("media_valutazione"));
                     System.out.println("paese: " + ristorante.get("nazione"));
                     System.out.println("citta: " + ristorante.get("nome_citta"));
                     System.out.println("Tipo di cucina: " + ristorante.get("tipo_cucina"));
@@ -689,7 +685,7 @@ public static double[] findCoordinates() {
                 String nome = (String) citta.get("nome");
                 String regione = (String) citta.get("regione");
                 String countryCode = (String) citta.get("country_code");
-                System.out.printf("%d: %s, %s (%s)%n", i + 1, nome, regione, countryCode);
+                System.out.println((i + 1) + ": " + nome + ", " + regione + " (" + countryCode + ")");
             }
             while(true) {
                 try {
